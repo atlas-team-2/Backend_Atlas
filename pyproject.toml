@@ -1,0 +1,13 @@
+[project]
+name = "backend-atlas"
+version = "0.1.0"
+description = "Backend for Atlas project"
+authors = [
+    {name = "Atlas Team"}
+]
+requires-python = ">=3.10"
+
+dependencies = [
+    "fastapi",
+    "uvicorn"
+]
