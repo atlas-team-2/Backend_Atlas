@@ -41,3 +41,18 @@ API: http://localhost:8000
 Зависимости зафиксированы в pyproject.toml и uv.lock
 
 Конфигурация pre-commit находится в .pre-commit-config.yaml
+
+pip install pip-tools   # если нужно обновлять зависимости
+pip install -r requirements.txt  # для установки зависимостей
+
+1)Если нужно добавить новую библиотеку, то редактируешь requirements.in
+
+Например, туда добавляешь sqlalchemy
+
+2)Потом генерируешь обновлённый requirements.txt:
+
+pip-compile requirements.in
+
+3)Устанавливаешь новые зависимости:
+
+pip install -r requirements.txt
