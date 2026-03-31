@@ -1,0 +1,1404 @@
+openapi: 3.1.0
+info:
+  title: Атлас народов
+  version: 1.0.0
+  description: |
+    Начальная OpenAPI-спецификация для MVP проекта «Атлас народа».
+    Спецификация составлена на основе ER-диаграммы и охватывает
+    основные REST-операции для народов, информации о народах,
+    зон расселения, костюмов, игр, вопросов и вариантов ответов,
+    комментариев, пользователей и ролей.
+
+servers:
+  - url: https://api.atlas.example.com
+    description: Production
+  - url: http://localhost:8000
+    description: Local development
+
+tags:
+  - name: Nations
+  - name: Nation Info
+  - name: Settlement Zones
+  - name: Costumes
+  - name: Games
+  - name: Game Questions
+  - name: Game Options
+  - name: Comments
+  - name: Users
+  - name: Roles
+
+paths:
+  /api/v1/nations:
+    get:
+      tags: [Nations]
+      summary: Get list of nations
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SortOrder'
+        - in: query
+          name: search
+          schema: {type: string}
+        - in: query
+          name: slug
+          schema: {type: string}
+        - in: query
+          name: population_min
+          schema: {type: integer, minimum: 0}
+        - in: query
+          name: population_max
+          schema: {type: integer, minimum: 0}
+        - in: query
+          name: sort_by
+          schema: {type: string, enum: [name, population, created_at], default: name}
+      responses:
+        '200':
+          description: Nation list
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NationListResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '500': {$ref: '#/components/responses/InternalError'}
+    post:
+      tags: [Nations]
+      summary: Create nation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/NationCreateRequest'}
+      responses:
+        '201':
+          description: Nation created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Nation'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
+  /api/v1/nations/{nation_id}:
+    get:
+      tags: [Nations]
+      summary: Get nation by id
+      parameters:
+        - $ref: '#/components/parameters/NationId'
+      responses:
+        '200':
+          description: Nation details
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NationDetails'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      tags: [Nations]
+      summary: Update nation
+      parameters:
+        - $ref: '#/components/parameters/NationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/NationUpdateRequest'}
+      responses:
+        '200':
+          description: Nation updated
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Nation'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    delete:
+      tags: [Nations]
+      summary: Delete nation
+      parameters:
+        - $ref: '#/components/parameters/NationId'
+      responses:
+        '204': {description: Nation deleted}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409':
+          description: Nation cannot be deleted because dependent entities exist
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+
+  /api/v1/nation-info:
+    get:
+      tags: [Nation Info]
+      summary: Get list of nation info
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: nation_id
+          schema: {type: string, format: uuid}
+        - in: query
+          name: language
+          schema: {type: string}
+        - in: query
+          name: religion
+          schema: {type: string}
+        - in: query
+          name: self_name
+          schema: {type: string}
+        - in: query
+          name: sort_by
+          schema: {type: string, enum: [self_name, language, religion], default: self_name}
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: Nation info list
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NationInfoListResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+    post:
+      tags: [Nation Info]
+      summary: Create nation info
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/NationInfoCreateRequest'}
+      responses:
+        '201':
+          description: Nation info created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NationInfo'}
+        '404':
+          description: Related nation not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
+  /api/v1/nation-info/{info_id}:
+    get:
+      tags: [Nation Info]
+      summary: Get nation info by id
+      parameters:
+        - $ref: '#/components/parameters/InfoId'
+      responses:
+        '200':
+          description: Nation info
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NationInfo'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      tags: [Nation Info]
+      summary: Update nation info
+      parameters:
+        - $ref: '#/components/parameters/InfoId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/NationInfoUpdateRequest'}
+      responses:
+        '200':
+          description: Nation info updated
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/NationInfo'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    delete:
+      tags: [Nation Info]
+      summary: Delete nation info
+      parameters:
+        - $ref: '#/components/parameters/InfoId'
+      responses:
+        '204': {description: Nation info deleted}
+        '404': {$ref: '#/components/responses/NotFound'}
+
+  /api/v1/settlement-zones:
+    get:
+      tags: [Settlement Zones]
+      summary: Get settlement zones
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: nation_id
+          schema: {type: string, format: uuid}
+        - in: query
+          name: region_name
+          schema: {type: string}
+        - in: query
+          name: color
+          schema: {type: string, pattern: '^#[0-9A-Fa-f]{6}$'}
+        - in: query
+          name: sort_by
+          schema: {type: string, enum: [region_name, created_at], default: region_name}
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: Settlement zone list
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SettlementZoneListResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+    post:
+      tags: [Settlement Zones]
+      summary: Create settlement zone
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/SettlementZoneCreateRequest'}
+      responses:
+        '201':
+          description: Settlement zone created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SettlementZone'}
+        '404':
+          description: Related nation not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
+  /api/v1/settlement-zones/{zone_id}:
+    get:
+      tags: [Settlement Zones]
+      summary: Get settlement zone by id
+      parameters:
+        - $ref: '#/components/parameters/ZoneId'
+      responses:
+        '200':
+          description: Settlement zone
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SettlementZone'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      tags: [Settlement Zones]
+      summary: Update settlement zone
+      parameters:
+        - $ref: '#/components/parameters/ZoneId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/SettlementZoneUpdateRequest'}
+      responses:
+        '200':
+          description: Settlement zone updated
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SettlementZone'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    delete:
+      tags: [Settlement Zones]
+      summary: Delete settlement zone
+      parameters:
+        - $ref: '#/components/parameters/ZoneId'
+      responses:
+        '204': {description: Settlement zone deleted}
+        '404': {$ref: '#/components/responses/NotFound'}
+
+  /api/v1/costumes:
+    get:
+      tags: [Costumes]
+      summary: Get costumes
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: nation_id
+          schema: {type: string, format: uuid}
+        - in: query
+          name: gender
+          schema: {type: string, maxLength: 10}
+        - in: query
+          name: created_from
+          schema: {type: string, format: date-time}
+        - in: query
+          name: created_to
+          schema: {type: string, format: date-time}
+        - in: query
+          name: sort_by
+          schema: {type: string, enum: [created_at, gender], default: created_at}
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: Costume list
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CostumeListResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+    post:
+      tags: [Costumes]
+      summary: Create costume
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CostumeCreateRequest'}
+      responses:
+        '201':
+          description: Costume created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Costume'}
+        '404':
+          description: Related nation not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
+  /api/v1/costumes/{costume_id}:
+    get:
+      tags: [Costumes]
+      summary: Get costume by id
+      parameters:
+        - $ref: '#/components/parameters/CostumeId'
+      responses:
+        '200':
+          description: Costume
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Costume'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      tags: [Costumes]
+      summary: Update costume
+      parameters:
+        - $ref: '#/components/parameters/CostumeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CostumeUpdateRequest'}
+      responses:
+        '200':
+          description: Costume updated
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Costume'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    delete:
+      tags: [Costumes]
+      summary: Delete costume
+      parameters:
+        - $ref: '#/components/parameters/CostumeId'
+      responses:
+        '204': {description: Costume deleted}
+        '404': {$ref: '#/components/responses/NotFound'}
+
+  /api/v1/games:
+    get:
+      tags: [Games]
+      summary: Get games
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: nation_id
+          schema: {type: string, format: uuid}
+        - in: query
+          name: type
+          schema: {type: string, maxLength: 100}
+        - in: query
+          name: is_active
+          schema: {type: boolean}
+        - in: query
+          name: title
+          schema: {type: string}
+        - in: query
+          name: sort_by
+          schema: {type: string, enum: [title, type, is_active], default: title}
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: Game list
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GameListResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+    post:
+      tags: [Games]
+      summary: Create game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/GameCreateRequest'}
+      responses:
+        '201':
+          description: Game created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Game'}
+        '404':
+          description: Related nation not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
+  /api/v1/games/{game_id}:
+    get:
+      tags: [Games]
+      summary: Get game by id
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '200':
+          description: Game details
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GameDetails'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      tags: [Games]
+      summary: Update game
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/GameUpdateRequest'}
+      responses:
+        '200':
+          description: Game updated
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Game'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    delete:
+      tags: [Games]
+      summary: Delete game
+      parameters:
+        - $ref: '#/components/parameters/GameId'
+      responses:
+        '204': {description: Game deleted}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409':
+          description: Game cannot be deleted because it contains questions
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+
+  /api/v1/game-questions:
+    get:
+      tags: [Game Questions]
+      summary: Get game questions
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: game_id
+          schema: {type: string, format: uuid}
+        - in: query
+          name: order_index
+          schema: {type: integer, minimum: 0}
+        - in: query
+          name: has_image
+          schema: {type: boolean}
+        - in: query
+          name: sort_by
+          schema: {type: string, enum: [order_index, created_at], default: order_index}
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: Question list
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GameQuestionListResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+    post:
+      tags: [Game Questions]
+      summary: Create question
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/GameQuestionCreateRequest'}
+      responses:
+        '201':
+          description: Question created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GameQuestion'}
+        '404':
+          description: Related game not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
+  /api/v1/game-questions/{question_id}:
+    get:
+      tags: [Game Questions]
+      summary: Get question by id
+      parameters:
+        - $ref: '#/components/parameters/QuestionId'
+      responses:
+        '200':
+          description: Question details
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GameQuestionDetails'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      tags: [Game Questions]
+      summary: Update question
+      parameters:
+        - $ref: '#/components/parameters/QuestionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/GameQuestionUpdateRequest'}
+      responses:
+        '200':
+          description: Question updated
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GameQuestion'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    delete:
+      tags: [Game Questions]
+      summary: Delete question
+      parameters:
+        - $ref: '#/components/parameters/QuestionId'
+      responses:
+        '204': {description: Question deleted}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409':
+          description: Question cannot be deleted because it contains options
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+
+  /api/v1/game-options:
+    get:
+      tags: [Game Options]
+      summary: Get game options
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: question_id
+          schema: {type: string, format: uuid}
+        - in: query
+          name: is_correct
+          schema: {type: boolean}
+        - in: query
+          name: has_image
+          schema: {type: boolean}
+        - in: query
+          name: sort_by
+          schema: {type: string, enum: [created_at, text], default: text}
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: Option list
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GameOptionListResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+    post:
+      tags: [Game Options]
+      summary: Create option
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/GameOptionCreateRequest'}
+      responses:
+        '201':
+          description: Option created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GameOption'}
+        '404':
+          description: Related question not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
+  /api/v1/game-options/{option_id}:
+    get:
+      tags: [Game Options]
+      summary: Get option by id
+      parameters:
+        - $ref: '#/components/parameters/OptionId'
+      responses:
+        '200':
+          description: Option
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GameOption'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      tags: [Game Options]
+      summary: Update option
+      parameters:
+        - $ref: '#/components/parameters/OptionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/GameOptionUpdateRequest'}
+      responses:
+        '200':
+          description: Option updated
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GameOption'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    delete:
+      tags: [Game Options]
+      summary: Delete option
+      parameters:
+        - $ref: '#/components/parameters/OptionId'
+      responses:
+        '204': {description: Option deleted}
+        '404': {$ref: '#/components/responses/NotFound'}
+
+  /api/v1/comments:
+    get:
+      tags: [Comments]
+      summary: Get comments
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: nation_id
+          schema: {type: string, format: uuid}
+        - in: query
+          name: user_id
+          schema: {type: string, format: uuid}
+        - in: query
+          name: is_approved
+          schema: {type: boolean}
+        - in: query
+          name: created_from
+          schema: {type: string, format: date-time}
+        - in: query
+          name: created_to
+          schema: {type: string, format: date-time}
+        - in: query
+          name: sort_by
+          schema: {type: string, enum: [created_at, is_approved], default: created_at}
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: Comment list
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CommentListResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+    post:
+      tags: [Comments]
+      summary: Create comment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CommentCreateRequest'}
+      responses:
+        '201':
+          description: Comment created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Comment'}
+        '404':
+          description: Related nation or user not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
+  /api/v1/comments/{comment_id}:
+    get:
+      tags: [Comments]
+      summary: Get comment by id
+      parameters:
+        - $ref: '#/components/parameters/CommentId'
+      responses:
+        '200':
+          description: Comment
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Comment'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      tags: [Comments]
+      summary: Update comment
+      parameters:
+        - $ref: '#/components/parameters/CommentId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CommentUpdateRequest'}
+      responses:
+        '200':
+          description: Comment updated
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Comment'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    delete:
+      tags: [Comments]
+      summary: Delete comment
+      parameters:
+        - $ref: '#/components/parameters/CommentId'
+      responses:
+        '204': {description: Comment deleted}
+        '404': {$ref: '#/components/responses/NotFound'}
+
+  /api/v1/users:
+    get:
+      tags: [Users]
+      summary: Get users
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: email
+          schema: {type: string, format: email}
+        - in: query
+          name: role_id
+          schema: {type: integer}
+        - in: query
+          name: created_from
+          schema: {type: string, format: date-time}
+        - in: query
+          name: created_to
+          schema: {type: string, format: date-time}
+        - in: query
+          name: sort_by
+          schema: {type: string, enum: [email, created_at], default: created_at}
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: User list
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/UserListResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+    post:
+      tags: [Users]
+      summary: Create user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/UserCreateRequest'}
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/User'}
+        '404':
+          description: Role not found
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
+  /api/v1/users/{user_id}:
+    get:
+      tags: [Users]
+      summary: Get user by id
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '200':
+          description: User
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/User'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      tags: [Users]
+      summary: Update user
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/UserUpdateRequest'}
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/User'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    delete:
+      tags: [Users]
+      summary: Delete user
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204': {description: User deleted}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409':
+          description: User cannot be deleted because dependent comments exist
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+
+  /api/v1/roles:
+    get:
+      tags: [Roles]
+      summary: Get roles
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: can_moderate
+          schema: {type: boolean}
+        - in: query
+          name: can_comment
+          schema: {type: boolean}
+        - in: query
+          name: name
+          schema: {type: string}
+        - in: query
+          name: sort_by
+          schema: {type: string, enum: [name], default: name}
+        - $ref: '#/components/parameters/SortOrder'
+      responses:
+        '200':
+          description: Role list
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/RoleListResponse'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+    post:
+      tags: [Roles]
+      summary: Create role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RoleCreateRequest'}
+      responses:
+        '201':
+          description: Role created
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Role'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+
+  /api/v1/roles/{role_id}:
+    get:
+      tags: [Roles]
+      summary: Get role by id
+      parameters:
+        - $ref: '#/components/parameters/RoleId'
+      responses:
+        '200':
+          description: Role
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Role'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      tags: [Roles]
+      summary: Update role
+      parameters:
+        - $ref: '#/components/parameters/RoleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RoleUpdateRequest'}
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Role'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+        '422': {$ref: '#/components/responses/ValidationError'}
+    delete:
+      tags: [Roles]
+      summary: Delete role
+      parameters:
+        - $ref: '#/components/parameters/RoleId'
+      responses:
+        '204': {description: Role deleted}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409':
+          description: Role cannot be deleted because it is assigned to users
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ErrorResponse'}
+
+components:
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number
+      schema: {type: integer, minimum: 1, default: 1}
+    PageSize:
+      name: page_size
+      in: query
+      description: Page size
+      schema: {type: integer, minimum: 1, maximum: 100, default: 20}
+    SortOrder:
+      name: sort_order
+      in: query
+      description: Sort direction
+      schema: {type: string, enum: [asc, desc], default: asc}
+    NationId: {name: nation_id, in: path, required: true, schema: {type: string, format: uuid}}
+    InfoId: {name: info_id, in: path, required: true, schema: {type: string, format: uuid}}
+    ZoneId: {name: zone_id, in: path, required: true, schema: {type: string, format: uuid}}
+    CostumeId: {name: costume_id, in: path, required: true, schema: {type: string, format: uuid}}
+    GameId: {name: game_id, in: path, required: true, schema: {type: string, format: uuid}}
+    QuestionId: {name: question_id, in: path, required: true, schema: {type: string, format: uuid}}
+    OptionId: {name: option_id, in: path, required: true, schema: {type: string, format: uuid}}
+    CommentId: {name: comment_id, in: path, required: true, schema: {type: string, format: uuid}}
+    UserId: {name: user_id, in: path, required: true, schema: {type: string, format: uuid}}
+    RoleId: {name: role_id, in: path, required: true, schema: {type: integer}}
+
+  responses:
+    BadRequest:
+      description: Invalid query parameters or invalid request format
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ErrorResponse'}
+          examples:
+            invalid_query:
+              value:
+                code: bad_request
+                message: Invalid request parameters
+                details: {page: must be greater than 0}
+                trace_id: 9f8b91fb-e6df-4d95-a586-2f23d6f53c0a
+    ValidationError:
+      description: Request body validation failed
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ErrorResponse'}
+          examples:
+            validation_failed:
+              value:
+                code: validation_error
+                message: Request body validation failed
+                details: {email: invalid email format}
+                trace_id: 68c0a0e8-844f-4135-8fcc-fd59d4360d6d
+    NotFound:
+      description: Entity not found
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ErrorResponse'}
+          examples:
+            not_found:
+              value:
+                code: not_found
+                message: Resource not found
+                details: null
+                trace_id: 4cf53fa3-bb4a-4f03-8a78-f7121fd74050
+    Conflict:
+      description: Unique constraint or business rule conflict
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ErrorResponse'}
+          examples:
+            duplicate_slug:
+              value:
+                code: conflict
+                message: Resource conflicts with existing data
+                details: {slug: already exists}
+                trace_id: 8ed1d863-985d-4c88-a562-fcfb5c1fe2a4
+    InternalError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/ErrorResponse'}
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, message, trace_id]
+      properties:
+        code: {type: string}
+        message: {type: string}
+        details:
+          oneOf:
+            - type: object
+              additionalProperties: true
+            - type: 'null'
+        trace_id: {type: string, format: uuid}
+
+    PaginationMeta:
+      type: object
+      required: [page, page_size, total_items, total_pages]
+      properties:
+        page: {type: integer}
+        page_size: {type: integer}
+        total_items: {type: integer}
+        total_pages: {type: integer}
+
+    Nation:
+      type: object
+      required: [id, name, slug]
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string, maxLength: 255}
+        slug: {type: string, maxLength: 255}
+        population: {type: integer, nullable: true}
+        image_url: {type: string, format: uri, nullable: true}
+    NationCreateRequest:
+      type: object
+      required: [name, slug]
+      properties:
+        name: {type: string, maxLength: 255}
+        slug: {type: string, maxLength: 255}
+        population: {type: integer, minimum: 0}
+        image_url: {type: string, format: uri}
+    NationUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/NationCreateRequest'
+    NationDetails:
+      allOf:
+        - $ref: '#/components/schemas/Nation'
+        - type: object
+          properties:
+            nation_info: {$ref: '#/components/schemas/NationInfo'}
+            settlement_zones:
+              type: array
+              items: {$ref: '#/components/schemas/SettlementZone'}
+            costumes:
+              type: array
+              items: {$ref: '#/components/schemas/Costume'}
+            games:
+              type: array
+              items: {$ref: '#/components/schemas/Game'}
+            comments_count: {type: integer}
+    NationListResponse:
+      type: object
+      required: [items, meta]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/Nation'}
+        meta: {$ref: '#/components/schemas/PaginationMeta'}
+
+    NationInfo:
+      type: object
+      required: [id, nation_id, origin, self_name, language, religion]
+      properties:
+        id: {type: string, format: uuid}
+        nation_id: {type: string, format: uuid}
+        origin: {type: string}
+        self_name: {type: string, maxLength: 255}
+        language: {type: string, maxLength: 100}
+        religion: {type: string, maxLength: 100}
+        facts: {type: string, nullable: true}
+    NationInfoCreateRequest:
+      type: object
+      required: [nation_id, origin, self_name, language, religion]
+      properties:
+        nation_id: {type: string, format: uuid}
+        origin: {type: string}
+        self_name: {type: string, maxLength: 255}
+        language: {type: string, maxLength: 100}
+        religion: {type: string, maxLength: 100}
+        facts: {type: string}
+    NationInfoUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/NationInfoCreateRequest'
+    NationInfoListResponse:
+      type: object
+      required: [items, meta]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/NationInfo'}
+        meta: {$ref: '#/components/schemas/PaginationMeta'}
+
+    SettlementZone:
+      type: object
+      required: [id, nation_id, region_name, polygon_data]
+      properties:
+        id: {type: string, format: uuid}
+        nation_id: {type: string, format: uuid}
+        region_name: {type: string, maxLength: 255}
+        polygon_data:
+          type: object
+          additionalProperties: true
+        color: {type: string, pattern: '^#[0-9A-Fa-f]{6}$', nullable: true}
+    SettlementZoneCreateRequest:
+      type: object
+      required: [nation_id, region_name, polygon_data]
+      properties:
+        nation_id: {type: string, format: uuid}
+        region_name: {type: string, maxLength: 255}
+        polygon_data:
+          type: object
+          additionalProperties: true
+        color: {type: string, pattern: '^#[0-9A-Fa-f]{6}$'}
+    SettlementZoneUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/SettlementZoneCreateRequest'
+    SettlementZoneListResponse:
+      type: object
+      required: [items, meta]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/SettlementZone'}
+        meta: {$ref: '#/components/schemas/PaginationMeta'}
+
+    Costume:
+      type: object
+      required: [id, nation_id, gender, image_url, created_at]
+      properties:
+        id: {type: string, format: uuid}
+        nation_id: {type: string, format: uuid}
+        gender: {type: string, maxLength: 10}
+        image_url: {type: string, format: uri}
+        description: {type: string, nullable: true}
+        created_at: {type: string, format: date-time}
+    CostumeCreateRequest:
+      type: object
+      required: [nation_id, gender, image_url, created_at]
+      properties:
+        nation_id: {type: string, format: uuid}
+        gender: {type: string, maxLength: 10}
+        image_url: {type: string, format: uri}
+        description: {type: string}
+        created_at: {type: string, format: date-time}
+    CostumeUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/CostumeCreateRequest'
+    CostumeListResponse:
+      type: object
+      required: [items, meta]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/Costume'}
+        meta: {$ref: '#/components/schemas/PaginationMeta'}
+
+    Game:
+      type: object
+      required: [id, nation_id, type, title, is_active]
+      properties:
+        id: {type: string, format: uuid}
+        nation_id: {type: string, format: uuid}
+        type: {type: string, maxLength: 100}
+        title: {type: string, maxLength: 255}
+        description: {type: string, nullable: true}
+        is_active: {type: boolean}
+    GameCreateRequest:
+      type: object
+      required: [nation_id, type, title, is_active]
+      properties:
+        nation_id: {type: string, format: uuid}
+        type: {type: string, maxLength: 100}
+        title: {type: string, maxLength: 255}
+        description: {type: string}
+        is_active: {type: boolean}
+    GameUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/GameCreateRequest'
+    GameDetails:
+      allOf:
+        - $ref: '#/components/schemas/Game'
+        - type: object
+          properties:
+            questions:
+              type: array
+              items: {$ref: '#/components/schemas/GameQuestion'}
+    GameListResponse:
+      type: object
+      required: [items, meta]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/Game'}
+        meta: {$ref: '#/components/schemas/PaginationMeta'}
+
+    GameQuestion:
+      type: object
+      required: [id, game_id, question_text, order_index]
+      properties:
+        id: {type: string, format: uuid}
+        game_id: {type: string, format: uuid}
+        question_text: {type: string}
+        image_url: {type: string, format: uri, nullable: true}
+        order_index: {type: integer}
+    GameQuestionCreateRequest:
+      type: object
+      required: [game_id, question_text, order_index]
+      properties:
+        game_id: {type: string, format: uuid}
+        question_text: {type: string}
+        image_url: {type: string, format: uri}
+        order_index: {type: integer, minimum: 0}
+    GameQuestionUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/GameQuestionCreateRequest'
+    GameQuestionDetails:
+      allOf:
+        - $ref: '#/components/schemas/GameQuestion'
+        - type: object
+          properties:
+            options:
+              type: array
+              items: {$ref: '#/components/schemas/GameOption'}
+    GameQuestionListResponse:
+      type: object
+      required: [items, meta]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/GameQuestion'}
+        meta: {$ref: '#/components/schemas/PaginationMeta'}
+
+    GameOption:
+      type: object
+      required: [id, question_id, text, is_correct]
+      properties:
+        id: {type: string, format: uuid}
+        question_id: {type: string, format: uuid}
+        text: {type: string, maxLength: 255}
+        is_correct: {type: boolean}
+        image_url: {type: string, format: uri, nullable: true}
+        explanation: {type: string, nullable: true}
+    GameOptionCreateRequest:
+      type: object
+      required: [question_id, text, is_correct]
+      properties:
+        question_id: {type: string, format: uuid}
+        text: {type: string, maxLength: 255}
+        is_correct: {type: boolean}
+        image_url: {type: string, format: uri}
+        explanation: {type: string}
+    GameOptionUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/GameOptionCreateRequest'
+    GameOptionListResponse:
+      type: object
+      required: [items, meta]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/GameOption'}
+        meta: {$ref: '#/components/schemas/PaginationMeta'}
+
+    Comment:
+      type: object
+      required: [id, nation_id, user_id, text, created_at, is_approved]
+      properties:
+        id: {type: string, format: uuid}
+        nation_id: {type: string, format: uuid}
+        user_id: {type: string, format: uuid}
+        text: {type: string}
+        created_at: {type: string, format: date-time}
+        is_approved: {type: boolean}
+    CommentCreateRequest:
+      type: object
+      required: [nation_id, user_id, text]
+      properties:
+        nation_id: {type: string, format: uuid}
+        user_id: {type: string, format: uuid}
+        text: {type: string}
+        is_approved: {type: boolean, default: false}
+    CommentUpdateRequest:
+      type: object
+      properties:
+        text: {type: string}
+        is_approved: {type: boolean}
+    CommentListResponse:
+      type: object
+      required: [items, meta]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/Comment'}
+        meta: {$ref: '#/components/schemas/PaginationMeta'}
+
+    User:
+      type: object
+      required: [id, email, created_at, role_id]
+      properties:
+        id: {type: string, format: uuid}
+        email: {type: string, format: email}
+        password_hash: {type: string, writeOnly: true}
+        created_at: {type: string, format: date-time}
+        role_id: {type: integer}
+    UserCreateRequest:
+      type: object
+      required: [email, password_hash, created_at, role_id]
+      properties:
+        email: {type: string, format: email}
+        password_hash: {type: string, minLength: 8, maxLength: 255}
+        created_at: {type: string, format: date-time}
+        role_id: {type: integer}
+    UserUpdateRequest:
+      type: object
+      properties:
+        email: {type: string, format: email}
+        password_hash: {type: string, minLength: 8, maxLength: 255}
+        created_at: {type: string, format: date-time}
+        role_id: {type: integer}
+    UserListResponse:
+      type: object
+      required: [items, meta]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/User'}
+        meta: {$ref: '#/components/schemas/PaginationMeta'}
+
+    Role:
+      type: object
+      required: [id, name, description, can_moderate, can_comment]
+      properties:
+        id: {type: integer}
+        name: {type: string, maxLength: 100}
+        description: {type: string}
+        can_moderate: {type: boolean}
+        can_comment: {type: boolean}
+    RoleCreateRequest:
+      type: object
+      required: [name, description, can_moderate, can_comment]
+      properties:
+        name: {type: string, maxLength: 100}
+        description: {type: string}
+        can_moderate: {type: boolean}
+        can_comment: {type: boolean}
+    RoleUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/RoleCreateRequest'
+    RoleListResponse:
+      type: object
+      required: [items, meta]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/Role'}
+        meta: {$ref: '#/components/schemas/PaginationMeta'}
