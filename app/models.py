@@ -1,6 +1,8 @@
-from typing import Optional
 from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime
+from typing import List, Optional
+from enum import Enum
+from pydantic import EmailStr
 
 class Nation(SQLModel, table=True):
     id: str = Field(primary_key=True)
@@ -20,7 +22,7 @@ class SettlementZone(SQLModel, table=True):
     id: str = Field(primary_key=True)
     nation_id: str = Field(foreign_key="nation.id")
     region_name: str
-    polygon_data: dict
+    polygon_data: list
     color: Optional[str] = None
 
     nation: Nation = Relationship(back_populates="zones")
@@ -29,42 +31,77 @@ class SettlementZone(SQLModel, table=True):
 class NationInfo(SQLModel, table=True):
     id: str = Field(primary_key=True)
     nation_id: str = Field(foreign_key="nation.id")
-    origin: Optional[str] = Field(unique=True)
+    origin: str
     self_name: str
-    language: str
-    religion: str
-    facts: Optional[str] = None
+    language: List[str]
+    religion: List[str]
+    facts: Optional[List[str]] = None
 
     nation: Nation = Relationship(back_populates="info")
+
+
+class Gender(str, Enum):
+    male = "male"
+    female = "female"
+
 
 class Costume(SQLModel, table=True):
     id: str = Field(primary_key=True)
     nation_id: str = Field(foreign_key="nation.id")
-    gender: str
+    gender: Gender
     image_url: str
     description: Optional[str] = None
     created_at: datetime
 
     nation: Nation = Relationship(back_populates="costumes")
 
+
+class Permission(SQLModel, table=True):
+    id: int = Field(primary_key=True)
+    subject: str
+    action: str
+
+    roles: list["Role"] = Relationship(
+        back_populates="permissions",
+        link_model="RolePermission"
+    )
+
+class RolePermission(SQLModel, table=True):
+    role_id: int = Field(foreign_key="role.id", primary_key=True)
+    permission_id: int = Field(foreign_key="permission.id", primary_key=True)
+
+class UserRole(SQLModel, table=True):
+    user_id: str = Field(foreign_key="user.id", primary_key=True)
+    role_id: int = Field(foreign_key="role.id", primary_key=True)
+
+
 class Role(SQLModel, table=True):
     id: int = Field(primary_key=True)
     name: str = Field(unique=True)
     description: str
-    can_moderate: bool
-    can_comment: bool
 
-    users: list["User"] = Relationship(back_populates="role")
+    permissions: list["Permission"] = Relationship(
+        back_populates="roles",
+        link_model=RolePermission
+    )
+
+    users: list["User"] = Relationship(
+        back_populates="roles",
+        link_model=UserRole
+    )
 
 
 class User(SQLModel, table=True):
     id: str = Field(primary_key=True)
-    email: str = Field(unique=True)
+    email: EmailStr = Field(unique=True)
     password_hash: str
     created_at: datetime
-    role_id: Optional[int] = Field(foreign_key="role.id")
 
-    role: Optional[Role] = Relationship(back_populates="users")
+    roles: list["Role"] = Relationship(
+        back_populates="users",
+        link_model=UserRole
+    )
+
     comments: list["Comment"] = Relationship(back_populates="user")
 
 
@@ -80,13 +117,18 @@ class Comment(SQLModel, table=True):
     user: User = Relationship(back_populates="comments")
 
 
+class GameType(str, Enum):
+    dish = "dish"
+    holiday = "holiday"
+    ornament = "ornament"
+
+
 class Game(SQLModel, table=True):
     id: str = Field(primary_key=True)
     nation_id: str = Field(foreign_key="nation.id")
-    type: str
+    type: GameType
     title: str
     description: Optional[str] = None
-    is_active: bool
 
     nation: Nation = Relationship(back_populates="games")
     questions: list["GameQuestion"] = Relationship(back_populates="game")
