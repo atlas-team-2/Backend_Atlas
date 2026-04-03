@@ -41,8 +41,8 @@ class NationInfo(SQLModel, table=True):
 
 
 class Gender(str, Enum):
-    male = "male"
-    female = "female"
+    MALE = "male"
+    FEMALE = "female"
 
 
 class Costume(SQLModel, table=True):
