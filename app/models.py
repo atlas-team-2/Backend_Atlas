@@ -38,7 +38,7 @@ class NationInfo(SQLModel, table=True):
     facts: Optional[List[str]] = None
 
     nation: Nation = Relationship(back_populates="info")
-
+      
 
 class Gender(str, Enum):
     MALE = "male"
