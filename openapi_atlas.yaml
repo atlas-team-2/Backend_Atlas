@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: Атлас народов
   version: 1.1.0
-  description: 'OpenAPI-спецификация для MVP проекта «Атлас народов».'
+  description: OpenAPI-спецификация для MVP проекта «Атлас народов».
 servers:
 - url: https://api.atlas.example.com
   description: Production
@@ -27,7 +27,9 @@ paths:
     post:
       tags:
       - Auth
-      summary: Register a new user
+      summary: Регистрация пользователя
+      description: Создаёт нового пользователя в системе.
+      operationId: registerUser
       requestBody:
         required: true
         content:
@@ -36,11 +38,17 @@ paths:
               $ref: '#/components/schemas/RegisterRequest'
       responses:
         '201':
-          description: User registered
+          description: Пользователь успешно зарегистрирован
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/SuccessResponse'
+              examples:
+                success:
+                  summary: Успешная регистрация
+                  value:
+                    success: true
+                    message: Пользователь успешно зарегистрирован
         '409':
           $ref: '#/components/responses/Conflict'
         '422':
@@ -2085,6 +2093,18 @@ components:
                 details: null
                 trace_id: 8ed1d863-985d-4c88-a562-fcfb5c1fe2a4
   schemas:
+    SuccessResponse:
+      type: object
+      required:
+      - success
+      - message
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Пользователь успешно зарегистрирован
     ErrorResponse:
       type: object
       required:
