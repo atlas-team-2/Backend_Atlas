@@ -7,8 +7,6 @@ app = FastAPI(
     description='API для проекта Атлас народа',
 )
 
-SPEC_PATH = Path(__file__).parent / 'openapi_atlas.yaml'
-
 
 @app.get('/')
 def read_root():
