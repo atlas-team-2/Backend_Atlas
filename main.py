@@ -1,4 +1,3 @@
-from pathlib import Path
 from fastapi import FastAPI
 
 app = FastAPI(
@@ -12,3 +11,7 @@ app = FastAPI(
 def read_root():
     return {'message': 'Atlas Naroda API is running'}
 
+
+@app.get('/items/{item_id}')
+def read_item(item_id: int):
+    return {'item_id': item_id}
