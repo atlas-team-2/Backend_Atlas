@@ -1,4 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
+from sqlalchemy import Column, JSON
 from datetime import datetime
 from typing import List, Optional
 from enum import Enum
@@ -22,7 +23,7 @@ class SettlementZone(SQLModel, table=True):
     id: str = Field(primary_key=True)
     nation_id: str = Field(foreign_key="nation.id")
     region_name: str
-    polygon_data: list
+    polygon_data: list = Field(sa_column=Column(JSON))
     color: Optional[str] = None
 
     nation: Nation = Relationship(back_populates="zones")
@@ -33,9 +34,9 @@ class NationInfo(SQLModel, table=True):
     nation_id: str = Field(foreign_key="nation.id")
     origin: str
     self_name: str
-    language: List[str]
-    religion: List[str]
-    facts: Optional[List[str]] = None
+    language: list[str] = Field(sa_column=Column(JSON))
+    religion: list[str] = Field(sa_column=Column(JSON))
+    facts: Optional[list[str]] = Field(default=None, sa_column=Column(JSON))
 
     nation: Nation = Relationship(back_populates="info")
       
@@ -55,6 +56,10 @@ class Costume(SQLModel, table=True):
 
     nation: Nation = Relationship(back_populates="costumes")
 
+class RolePermission(SQLModel, table=True):
+    role_id: int = Field(foreign_key="role.id", primary_key=True)
+    permission_id: int = Field(foreign_key="permission.id", primary_key=True)
+
 
 class Permission(SQLModel, table=True):
     id: int = Field(primary_key=True)
@@ -63,12 +68,9 @@ class Permission(SQLModel, table=True):
 
     roles: list["Role"] = Relationship(
         back_populates="permissions",
-        link_model="RolePermission"
+        link_model=RolePermission
     )
 
-class RolePermission(SQLModel, table=True):
-    role_id: int = Field(foreign_key="role.id", primary_key=True)
-    permission_id: int = Field(foreign_key="permission.id", primary_key=True)
 
 class UserRole(SQLModel, table=True):
     user_id: str = Field(foreign_key="user.id", primary_key=True)
