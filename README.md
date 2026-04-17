@@ -31,6 +31,7 @@
 
 | Название переменной | Тип | Описание | Значение по умолчанию |
 |---|---|---|---|
+| DB_SCHEMA | string | Схема подключения к базе данных | postgresql+asyncpg |
 | APP_NAME | string | Название приложения | Atlas Naroda API |
 | APP_VERSION | string | Версия приложения | 1.0.0 |
 | APP_DESCRIPTION | string | Описание приложения | API для проекта Атлас народа |
