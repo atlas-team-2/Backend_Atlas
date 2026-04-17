@@ -4,18 +4,17 @@ from sqlalchemy.engine import URL
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 
-from app import models  # noqa: F401
-from app.core.config import db_settings
+from app.core.config import settings
 
 
 def form_db_url() -> str:
     return URL.create(
-        drivername=db_settings.db_schema,
-        username=db_settings.db_user,
-        password=db_settings.db_password,
-        host=db_settings.db_host,
-        port=db_settings.db_port,
-        database=db_settings.db_name,
+        drivername=settings.db.drivername,
+        username=settings.db.user,
+        password=settings.db.password,
+        host=settings.db.host,
+        port=settings.db.port,
+        database=settings.db.name,
     ).render_as_string(hide_password=False)
 
 

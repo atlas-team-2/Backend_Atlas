@@ -1,32 +1,39 @@
+from functools import lru_cache
+
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class AppSettings(BaseSettings):
-    app_name: str = 'Atlas Naroda API'
-    app_version: str = '1.0.0'
-    app_description: str = 'API для проекта Атлас народа'
+class AppConfig(BaseModel):
+    name: str = 'Atlas Naroda API'
+    version: str = '1.0.0'
+    description: str = 'API для проекта Атлас народа'
+
+
+class DbConfig(BaseModel):
+    drivername: str = 'postgresql+asyncpg'
+    host: str = 'localhost'
+    user: str = 'postgres'
+    password: str = 'ТВОЙ_РЕАЛЬНЫЙ_ПАРОЛЬ'
+    port: int = 5432
+    name: str = 'atlas_db'
+
+
+class Settings(BaseSettings):
+    app: AppConfig = AppConfig()
+    db: DbConfig = DbConfig()
 
     model_config = SettingsConfigDict(
         env_file='.env',
         env_file_encoding='utf-8',
         extra='ignore',
+        env_nested_delimiter='__',
     )
 
 
-class DatabaseSettings(BaseSettings):
-    db_schema: str = 'postgresql+asyncpg'
-    db_host: str = 'localhost'
-    db_port: int = 5432
-    db_name: str = 'atlas_db'
-    db_user: str = 'postgres'
-    db_password: str = 'postgres'
-
-    model_config = SettingsConfigDict(
-        env_file='.env',
-        env_file_encoding='utf-8',
-        extra='ignore',
-    )
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
 
 
-app_settings = AppSettings()
-db_settings = DatabaseSettings()
+settings = get_settings()
