@@ -111,9 +111,7 @@ dependencies = [
     { name = "email-validator" },
     { name = "fastapi" },
     { name = "greenlet" },
-    { name = "pre-commit" },
     { name = "pydantic-settings" },
-    { name = "ruff" },
     { name = "sqlmodel" },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -126,14 +124,12 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "asyncpg" },
-    { name = "email-validator" },
+    { name = "asyncpg", specifier = "==0.31.0" },
+    { name = "email-validator", specifier = "==2.3.0" },
     { name = "fastapi" },
-    { name = "greenlet" },
-    { name = "pre-commit", specifier = ">=4.5.1" },
-    { name = "pydantic-settings" },
-    { name = "ruff", specifier = ">=0.15.5" },
-    { name = "sqlmodel" },
+    { name = "greenlet", specifier = "==3.4.0" },
+    { name = "pydantic-settings", specifier = "==2.13.1" },
+    { name = "sqlmodel", specifier = "==0.0.38" },
     { name = "uvicorn", extras = ["standard"] },
 ]
 
