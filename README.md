@@ -57,3 +57,24 @@ DB_PORT=5432
 DB_NAME=atlas_db
 DB_USER=postgres
 DB_PASSWORD=postgres
+```
+
+## Работа с миграциями (Alembic)
+
+Для управления структурой базы данных используется Alembic.
+
+### Создание новой миграции
+alembic revision --autogenerate -m "описание изменений"
+
+### Применение миграций
+alembic upgrade head
+
+### Откат миграций
+alembic downgrade -1
+
+### Просмотр истории миграций
+alembic history
+
+### Проверка текущего состояния
+alembic current
+
