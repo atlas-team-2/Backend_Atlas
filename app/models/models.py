@@ -1,9 +1,11 @@
 from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import Column, JSON
+from sqlalchemy import Column
+from sqlalchemy.dialects.postgresql import JSONB
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 from enum import Enum
 from pydantic import EmailStr
+
 
 class Nation(SQLModel, table=True):
     id: str = Field(primary_key=True)
@@ -23,7 +25,7 @@ class SettlementZone(SQLModel, table=True):
     id: str = Field(primary_key=True)
     nation_id: str = Field(foreign_key="nation.id")
     region_name: str
-    polygon_data: list = Field(sa_column=Column(JSON))
+    polygon_data: list = Field(sa_column=Column(JSONB))
     color: Optional[str] = None
 
     nation: Nation = Relationship(back_populates="zones")
@@ -34,12 +36,12 @@ class NationInfo(SQLModel, table=True):
     nation_id: str = Field(foreign_key="nation.id")
     origin: str
     self_name: str
-    language: list[str] = Field(sa_column=Column(JSON))
-    religion: list[str] = Field(sa_column=Column(JSON))
-    facts: Optional[list[str]] = Field(default=None, sa_column=Column(JSON))
+    language: list[str] = Field(sa_column=Column(JSONB))
+    religion: list[str] = Field(sa_column=Column(JSONB))
+    facts: Optional[list[str]] = Field(default=None, sa_column=Column(JSONB))
 
     nation: Nation = Relationship(back_populates="info")
-      
+
 
 class Gender(str, Enum):
     MALE = "male"
@@ -55,6 +57,7 @@ class Costume(SQLModel, table=True):
     created_at: datetime
 
     nation: Nation = Relationship(back_populates="costumes")
+
 
 class RolePermission(SQLModel, table=True):
     role_id: int = Field(foreign_key="role.id", primary_key=True)
