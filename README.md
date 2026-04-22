@@ -45,36 +45,22 @@
 
 В проекте присутствует файл `.env.example` со всеми необходимыми переменными среды и значениями по умолчанию.
 
-Пример содержимого `.env`:
-
-```env
-APP_NAME="Atlas Naroda API"
-APP_VERSION="1.0.0"
-APP_DESCRIPTION="API для проекта Атлас народа"
-
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=atlas_db
-DB_USER=postgres
-DB_PASSWORD=postgres
-```
-
 ## Работа с миграциями (Alembic)
 
 Для управления структурой базы данных используется Alembic.
 
 ### Создание новой миграции
-alembic revision --autogenerate -m "описание изменений"
+uv run alembic revision --autogenerate -m "описание изменений"
 
 ### Применение миграций
-alembic upgrade head
+uv run alembic upgrade head
 
 ### Откат миграций
-alembic downgrade -1
+uv run alembic downgrade -1
 
 ### Просмотр истории миграций
-alembic history
+uv run alembic history
 
 ### Проверка текущего состояния
-alembic current
+uv run alembic current
 
