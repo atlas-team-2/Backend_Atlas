@@ -8,18 +8,15 @@ class CommentBase(SQLModel):
     nation_id: UUID = Field(foreign_key="nation.id")
     user_id: UUID = Field(foreign_key="user.id")
     text: str
-    is_approved: bool
 
 
 class Comment(BaseModel, CommentBase, table=True):
+    is_approved: bool = False
     nation: "Nation" = Relationship(back_populates="comments")
     user: "User" = Relationship(back_populates="comments")
 
-
-class CommentCreate(SQLModel):
-    nation_id: UUID
-    user_id: UUID
-    text: str
+class CommentCreate(CommentBase):
+    pass
 
 
 class CommentUpdate(SQLModel):
@@ -28,4 +25,4 @@ class CommentUpdate(SQLModel):
 
 
 class CommentPublic(CommentBase, BaseModel):
-    pass
+    is_approved: bool

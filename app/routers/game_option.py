@@ -1,0 +1,49 @@
+from typing import Annotated, Optional, Sequence
+from uuid import UUID
+
+from fastapi import APIRouter, Query
+
+from app.dependencies.services import GameOptionServiceDep
+from app.models.entities.game_option import GameOptionCreate, GameOptionUpdate, GameOptionPublic
+
+router = APIRouter(
+    prefix="/game-options",
+    tags=["game-options"],
+)
+
+@router.get("/")
+async def get_game_options(
+    service: GameOptionServiceDep,
+    offset: int = Query(0, ge=0),
+    limit: int = Query(100, le=1000),
+) -> Sequence[GameOptionPublic]:
+    return await service.get_game_options(offset=offset, limit=limit)
+
+@router.post("/")
+async def create_game_option(
+    game_option_create: GameOptionCreate,
+    service: GameOptionServiceDep,
+) -> GameOptionPublic:
+    return await service.create_game_option(game_option_create)
+
+@router.get("/{game_option_id}")
+async def get_game_option(
+    game_option_id: UUID,
+    service: GameOptionServiceDep,
+) -> Optional[GameOptionPublic]:
+    return await service.get_game_option(game_option_id)
+
+@router.put("/{game_option_id}")
+async def update_game_option(
+    game_option_id: UUID,
+    game_option_update: GameOptionUpdate,
+    service: GameOptionServiceDep,
+) -> Optional[GameOptionPublic]:
+    return await service.update_game_option(game_option_id, game_option_update)
+
+@router.delete("/{game_option_id}")
+async def delete_game_option(
+    game_option_id: UUID,
+    service: GameOptionServiceDep,
+) -> Optional[GameOptionPublic]:
+    return await service.delete_game_option(game_option_id)

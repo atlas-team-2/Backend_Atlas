@@ -6,9 +6,9 @@ from enum import Enum
 
 
 class GameType(str, Enum):
-    dish = "dish"
-    holiday = "holiday"
-    ornament = "ornament"
+    DISH = "dish"
+    HOLIDAY = "holiday"
+    ORNAMENT = "ornament"
 
 
 class GameBase(SQLModel):
