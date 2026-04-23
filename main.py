@@ -1,13 +1,17 @@
 from fastapi import FastAPI
 
-app = FastAPI()
+from app.core.config import settings
+from app.routers import user
 
 
-@app.get('/')
-def read_root():
-    return {'Hello': 'World'}
+app = FastAPI(
+    title=settings.app.name,
+    version=settings.app.version,
+    description=settings.app.description,
+)
 
+@app.get("/")
+async def read_root():
+    return {"message": "Atlas Naroda API is running"}
 
-@app.get('/items/{item_id}')
-def read_item(item_id: int):
-    return {'item_id': item_id}
+app.include_router(user.router, prefix="/api/v1")
