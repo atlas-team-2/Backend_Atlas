@@ -9,11 +9,13 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.core.config import settings
 from sqlmodel import SQLModel
 from app.models.entities import *
+from app.db.engine import form_db_url
 
 
 config = context.config
 
-config.set_main_option("sqlalchemy.url", settings.db.url)
+
+config.set_main_option("sqlalchemy.url", form_db_url())
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)

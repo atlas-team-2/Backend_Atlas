@@ -1,3 +1,3 @@
-from app.db.engine import create_db_and_tables, get_session
+from app.db.engine import get_session
 
-__all__ = ['create_db_and_tables', 'get_session']
+__all__ = ["get_session"]

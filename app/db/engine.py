@@ -8,12 +8,12 @@ from app.core.config import settings
 
 def form_db_url() -> str:
     return URL.create(
-        drivername=settings.db.drivername,
-        username=settings.db.user,
-        password=settings.db.password,
-        host=settings.db.host,
-        port=settings.db.port,
-        database=settings.db.name,
+        drivername=settings.db_schema,
+        username=settings.db_user,
+        password=settings.db_password,
+        host=settings.db_host,
+        port=settings.db_port,
+        database=settings.db_name,
     ).render_as_string(hide_password=False)
 
 
@@ -32,5 +32,3 @@ async_session_maker = async_sessionmaker(
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session
-
-
