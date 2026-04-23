@@ -3,7 +3,7 @@ from collections.abc import AsyncGenerator
 from sqlalchemy.engine import URL
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.core.config import settings
+from app.core.settings import settings
 
 
 def form_db_url() -> str:

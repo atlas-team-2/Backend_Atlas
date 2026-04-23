@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from app.core.config import settings
+from app.core.settings import settings
 from sqlmodel import SQLModel
 from app.models.entities import *
 from app.db.engine import form_db_url
