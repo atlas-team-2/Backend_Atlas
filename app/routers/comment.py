@@ -5,6 +5,8 @@ from fastapi import APIRouter, Query
 
 from app.dependencies.services import CommentServiceDep
 from app.models.entities.comment import CommentCreate, CommentUpdate, CommentPublic
+from fastapi import Depends
+from app.schemas.filters import CommonListFilters
 
 router = APIRouter(
     prefix="/comments",
@@ -14,10 +16,9 @@ router = APIRouter(
 @router.get("/")
 async def get_comments(
     service: CommentServiceDep,
-    offset: int = Query(0, ge=0),
-    limit: int = Query(100, le=1000),
+    filters: CommonListFilters = Depends(),
 ) -> Sequence[CommentPublic]:
-    return await service.get_comments(offset=offset, limit=limit)
+    return await service.get_comments(offset=filters.offset, limit=filters.limit)
 
 @router.post("/")
 async def create_comment(

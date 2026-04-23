@@ -5,6 +5,8 @@ from fastapi import APIRouter, Query
 
 from app.dependencies.services import PermissionServiceDep
 from app.models.entities.permission import PermissionCreate, PermissionUpdate, PermissionPublic
+from fastapi import Depends
+from app.schemas.filters import CommonListFilters
 
 router = APIRouter(
     prefix="/permissions",
@@ -14,10 +16,9 @@ router = APIRouter(
 @router.get("/")
 async def get_permissions(
     service: PermissionServiceDep,
-    offset: int = Query(0, ge=0),
-    limit: int = Query(100, le=1000),
+    filters: CommonListFilters = Depends(),
 ) -> Sequence[PermissionPublic]:
-    return await service.get_permissions(offset=offset, limit=limit)
+    return await service.get_permissions(offset=filters.offset, limit=filters.limit)
 
 @router.post("/")
 async def create_permission(

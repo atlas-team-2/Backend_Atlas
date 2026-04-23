@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from app.core.db_config import DBConfig
 
 
 class AppConfig(BaseSettings):
@@ -10,13 +11,7 @@ class AppConfig(BaseSettings):
 
 class Settings(BaseSettings):
     app: AppConfig = AppConfig()
-
-    db_schema: str = 'postgresql+asyncpg'
-    db_host: str = 'localhost'
-    db_user: str = 'postgres'
-    db_password: str = 'postgres'
-    db_port: int = 5432
-    db_name: str = 'atlas_db'
+    db: DBConfig = DBConfig()
 
     model_config = SettingsConfigDict(
         env_file='.env',

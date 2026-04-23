@@ -5,6 +5,8 @@ from fastapi import APIRouter, Query
 
 from app.dependencies.services import GameQuestionServiceDep
 from app.models.entities.game_question import GameQuestionCreate, GameQuestionUpdate, GameQuestionPublic
+from fastapi import Depends
+from app.schemas.filters import CommonListFilters
 
 router = APIRouter(
     prefix="/game-questions",
@@ -14,10 +16,9 @@ router = APIRouter(
 @router.get("/")
 async def get_game_questions(
     service: GameQuestionServiceDep,
-    offset: int = Query(0, ge=0),
-    limit: int = Query(100, le=1000),
+    filters: CommonListFilters = Depends(),
 ) -> Sequence[GameQuestionPublic]:
-    return await service.get_game_questions(offset=offset, limit=limit)
+    return await service.get_game_questions(offset=filters.offset, limit=filters.limit)
 
 @router.post("/")
 async def create_game_question(
