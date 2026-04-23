@@ -5,6 +5,8 @@ from fastapi import APIRouter, Query
 
 from app.dependencies.services import RoleServiceDep
 from app.models.entities.role import RoleCreate, RoleUpdate, RolePublic
+from fastapi import Depends
+from app.schemas.filters import CommonListFilters
 
 router = APIRouter(
     prefix="/roles",
@@ -14,10 +16,9 @@ router = APIRouter(
 @router.get("/")
 async def get_roles(
     service: RoleServiceDep,
-    offset: int = Query(0, ge=0),
-    limit: int = Query(100, le=1000),
+    filters: CommonListFilters = Depends(),
 ) -> Sequence[RolePublic]:
-    return await service.get_roles(offset=offset, limit=limit)
+    return await service.get_roles(offset=filters.offset, limit=filters.limit)
 
 @router.post("/")
 async def create_role(

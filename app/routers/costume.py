@@ -5,6 +5,8 @@ from fastapi import APIRouter, Query
 
 from app.dependencies.services import CostumeServiceDep
 from app.models.entities.costume import CostumeCreate, CostumeUpdate, CostumePublic
+from fastapi import Depends
+from app.schemas.filters import CommonListFilters
 
 router = APIRouter(
     prefix="/costumes",
@@ -14,10 +16,9 @@ router = APIRouter(
 @router.get("/")
 async def get_costumes(
     service: CostumeServiceDep,
-    offset: int = Query(0, ge=0),
-    limit: int = Query(100, le=1000),
+    filters: CommonListFilters = Depends(),
 ) -> Sequence[CostumePublic]:
-    return await service.get_costumes(offset=offset, limit=limit)
+    return await service.get_costumes(offset=filters.offset, limit=filters.limit)
 
 @router.post("/")
 async def create_costume(
