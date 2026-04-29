@@ -1,4 +1,4 @@
-from typing import Optional, Sequence, TypeVar, Generic
+from typing import Generic, Optional, Sequence, TypeVar
 from uuid import UUID
 
 from pydantic import BaseModel as PydanticBaseModel
@@ -8,7 +8,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from app.dependencies.session import SessionDep
 from app.models.base import BaseModel
 
-Model = TypeVar("Model", bound=BaseModel)
+Model = TypeVar('Model', bound=BaseModel)
 
 
 class Repository(Generic[Model]):
@@ -64,11 +64,16 @@ class Repository(Generic[Model]):
         await self._session.commit()
         return instance
 
-    async def update(self, pk: UUID, updates: PydanticBaseModel) -> Optional[Model]:
+    async def update(
+        self,
+        pk: UUID,
+        updates: PydanticBaseModel | dict,
+    ) -> Optional[Model]:
         instance = await self.get(pk)
         if instance is None:
             return None
-        for key, value in updates.model_dump().items():
+        update_data = updates if isinstance(updates, dict) else updates.model_dump()
+        for key, value in update_data.items():
             if hasattr(instance, key):
                 setattr(instance, key, value)
         await self.save(instance)
