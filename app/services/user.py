@@ -1,9 +1,9 @@
-from base64 import b64encode
 from typing import Optional, Sequence
 from uuid import UUID
 
 from app.dependencies.repositories import UserRepositoryDep
 from app.models.entities.user import User, UserCreate, UserUpdate
+from app.utils.hasher import Hasher
 
 
 class UserService:
@@ -16,8 +16,8 @@ class UserService:
     async def create_user(self, user_create: UserCreate) -> User:
         data = user_create.model_dump()
 
-        password = str(data.pop("password"))
-        password_hash = b64encode(password.encode()).decode()
+        password = data.pop('password')
+        password_hash = Hasher.get_password_hash(password)
 
         user = User(**data, password_hash=password_hash)
         return await self.user_repository.save(user)
@@ -25,12 +25,19 @@ class UserService:
     async def get_user(self, user_id: UUID) -> Optional[User]:
         return await self.user_repository.get(user_id)
 
-    async def update_user(self, user_id: UUID, user_update: UserUpdate) -> Optional[User]:
+    async def get_user_by_email(self, email: str) -> Optional[User]:
+        return await self.user_repository.get_by_email(email)
+
+    async def update_user(
+        self,
+        user_id: UUID,
+        user_update: UserUpdate,
+    ) -> Optional[User]:
         data = user_update.model_dump(exclude_unset=True)
 
-        if "password" in data and data["password"] is not None:
-            password = str(data.pop("password"))
-            data["password_hash"] = b64encode(password.encode()).decode()
+        if 'password' in data and data['password'] is not None:
+            password = data.pop('password')
+            data['password_hash'] = Hasher.get_password_hash(password)
 
         return await self.user_repository.update(user_id, data)
 
