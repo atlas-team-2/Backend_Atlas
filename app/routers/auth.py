@@ -7,9 +7,8 @@ from app.dependencies.auth import (
     CurrentUserDep,
     RefreshTokenCookieDep,
 )
-from app.dependencies.services import UserServiceDep
 from app.models.entities.user import UserCreate, UserPublic
-from app.schemas.auth import AuthData, AuthTokenData, LogoutResponse, RegisterResponse
+from app.schemas.auth import AuthData, AuthTokenData, LogoutResponse
 
 router = APIRouter(
     prefix='/auth',
@@ -23,21 +22,20 @@ def _set_refresh_token_cookie(response: Response, refresh_token: str) -> None:
         value=refresh_token,
         httponly=True,
         samesite='lax',
-        max_age=settings.auth.refresh_token_lifetime_seconds,
+        max_age=int(settings.auth.refresh_token_lifetime.total_seconds()),
     )
-
-
-def _delete_refresh_token_cookie(response: Response) -> None:
-    response.delete_cookie(key=REFRESH_TOKEN_COOKIE_NAME)
 
 
 @router.post('/register', status_code=status.HTTP_201_CREATED)
 async def register(
     user_create: UserCreate,
-    service: UserServiceDep,
-) -> RegisterResponse:
-    await service.create_user(user_create)
-    return RegisterResponse(success=True)
+    authenticator: AuthenticatorDep,
+    response: Response,
+) -> AuthTokenData:
+    tokens = await authenticator.register(user_create)
+
+    _set_refresh_token_cookie(response, tokens.refresh_token)
+    return tokens
 
 
 @router.post('/login')
@@ -47,6 +45,7 @@ async def login(
     response: Response,
 ) -> AuthTokenData:
     tokens = await authenticator.create_tokens(auth_data)
+
     if tokens is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -65,8 +64,8 @@ async def me(current_user: CurrentUserDep) -> UserPublic:
 @router.post('/logout')
 async def logout(
     authenticator: AuthenticatorDep,
+    refresh_token: RefreshTokenCookieDep,
     response: Response,
-    refresh_token: RefreshTokenCookieDep = None,
 ) -> LogoutResponse:
     if refresh_token is None:
         raise HTTPException(
@@ -75,15 +74,18 @@ async def logout(
         )
 
     success = await authenticator.logout(refresh_token)
-    _delete_refresh_token_cookie(response)
+
+    if success:
+        response.delete_cookie(key=REFRESH_TOKEN_COOKIE_NAME)
+
     return LogoutResponse(success=success)
 
 
 @router.post('/refresh')
 async def refresh(
     authenticator: AuthenticatorDep,
+    refresh_token: RefreshTokenCookieDep,
     response: Response,
-    refresh_token: RefreshTokenCookieDep = None,
 ) -> AuthTokenData:
     if refresh_token is None:
         raise HTTPException(
@@ -92,6 +94,7 @@ async def refresh(
         )
 
     tokens = await authenticator.refresh_tokens(refresh_token)
+
     if tokens is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
