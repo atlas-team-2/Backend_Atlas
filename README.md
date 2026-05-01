@@ -38,6 +38,7 @@ uv
 | AUTH__ALGORITHM                      | string | Алгоритм подписи JWT                                                 | HS256                                         |   |
 | AUTH__ACCESS_TOKEN_LIFETIME_SECONDS  | int    | Время жизни access-токена в секундах                                 | 300                                           |   |
 | AUTH__REFRESH_TOKEN_LIFETIME_SECONDS | int    | Время жизни refresh-токена и refresh-сессии в секундах               | 3600                                          |   |
+
 Файл .env.example
 В проекте присутствует файл .env.example со всеми необходимыми переменными среды и значениями по умолчанию.
 

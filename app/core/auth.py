@@ -21,9 +21,7 @@ class Authenticator:
         self.__user_service = user_service
         self.__refresh_session_service = refresh_session_service
 
-    # -------------------------
-    # JWT
-    # -------------------------
+
     def __create_token(
         self,
         user_id: UUID,
@@ -80,9 +78,7 @@ class Authenticator:
 
         return user, token_id
 
-    # -------------------------
-    # AUTH
-    # -------------------------
+
     async def authenticate_user(self, access_token: str) -> Optional[User]:
         token_data = await self.__get_user_token_data(
             access_token,
@@ -156,9 +152,7 @@ class Authenticator:
         user = await self.__user_service.create_user(user_create)
         return await self.__generate_tokens(user.id)
 
-    # -------------------------
-    # LOGOUT
-    # -------------------------
+
     async def logout(self, refresh_token: str) -> bool:
         token_data = await self.__get_user_token_data(
             refresh_token,
@@ -181,9 +175,7 @@ class Authenticator:
 
         return True
 
-    # -------------------------
-    # REFRESH
-    # -------------------------
+
     async def refresh_tokens(self, refresh_token: str) -> Optional[AuthTokenData]:
         token_data = await self.__get_user_token_data(
             refresh_token,

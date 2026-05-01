@@ -9,7 +9,7 @@ from app.core.settings import settings
 
 def form_db_url() -> str:
     return URL.create(
-        drivername=settings.db.schema,
+        drivername=settings.db.drivername,
         username=settings.db.user,
         password=settings.db.password,
         host=settings.db.host,

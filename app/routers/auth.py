@@ -10,6 +10,7 @@ from app.dependencies.auth import (
 from app.models.entities.user import UserCreate, UserPublic
 from app.schemas.auth import AuthData, AuthTokenData, LogoutResponse
 
+
 router = APIRouter(
     prefix='/auth',
     tags=['auth'],
