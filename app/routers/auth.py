@@ -66,6 +66,7 @@ async def me(
 async def refresh(
     refresh_token: RefreshTokenCookieDep,
     authenticator: AuthenticatorDep,
+    refresh_token: RefreshTokenCookieDep,
     response: Response,
 ):
     if refresh_token is None:
