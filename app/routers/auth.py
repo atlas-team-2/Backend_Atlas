@@ -1,14 +1,19 @@
 from fastapi import APIRouter, HTTPException, Response, status
 
-from app.core.settings import settings
 from app.dependencies.auth import (
     REFRESH_TOKEN_COOKIE_NAME,
     AuthenticatorDep,
     CurrentUserDep,
     RefreshTokenCookieDep,
 )
-from app.models.entities.user import UserCreate, UserPublic
-from app.schemas.auth import AuthData, AuthTokenData, LogoutResponse
+from app.models.entities.user import UserCreate
+from app.schemas.auth import (
+    AuthData,
+    AuthTokenData,
+    LogoutResponse,
+    MeResponse,
+    RegisterResponse,
+)
 
 
 router = APIRouter(
@@ -17,81 +22,57 @@ router = APIRouter(
 )
 
 
-def _set_refresh_token_cookie(response: Response, refresh_token: str) -> None:
-    response.set_cookie(
-        key=REFRESH_TOKEN_COOKIE_NAME,
-        value=refresh_token,
-        httponly=True,
-        samesite='lax',
-        max_age=int(settings.auth.refresh_token_lifetime.total_seconds()),
-    )
-
-
-@router.post('/register', status_code=status.HTTP_201_CREATED)
+@router.post('/register', response_model=RegisterResponse)
 async def register(
     user_create: UserCreate,
     authenticator: AuthenticatorDep,
-    response: Response,
-) -> AuthTokenData:
-    tokens = await authenticator.register(user_create)
+):
+    success = await authenticator.register(user_create)
 
-    _set_refresh_token_cookie(response, tokens.refresh_token)
-    return tokens
+    return RegisterResponse(success=success)
 
 
-@router.post('/login')
+@router.post('/login', response_model=AuthTokenData)
 async def login(
     auth_data: AuthData,
     authenticator: AuthenticatorDep,
     response: Response,
-) -> AuthTokenData:
+):
     tokens = await authenticator.create_tokens(auth_data)
 
     if tokens is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Incorrect email or password',
+            detail='Invalid email or password',
         )
 
-    _set_refresh_token_cookie(response, tokens.refresh_token)
+    response.set_cookie(
+        key=REFRESH_TOKEN_COOKIE_NAME,
+        value=tokens.refresh_token,
+        httponly=True,
+    )
+
     return tokens
 
 
-@router.get('/me')
-async def me(current_user: CurrentUserDep) -> UserPublic:
+@router.get('/me', response_model=MeResponse)
+async def me(
+    current_user: CurrentUserDep,
+):
     return current_user
 
 
-@router.post('/logout')
-async def logout(
-    authenticator: AuthenticatorDep,
-    refresh_token: RefreshTokenCookieDep,
-    response: Response,
-) -> LogoutResponse:
-    if refresh_token is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Refresh token cookie is required',
-        )
-
-    success = await authenticator.logout(refresh_token)
-
-    if success:
-        response.delete_cookie(key=REFRESH_TOKEN_COOKIE_NAME)
-
-    return LogoutResponse(success=success)
-
-
-@router.post('/refresh')
+@router.post('/refresh', response_model=AuthTokenData)
 async def refresh(
+    refresh_token: RefreshTokenCookieDep,
     authenticator: AuthenticatorDep,
     refresh_token: RefreshTokenCookieDep,
     response: Response,
-) -> AuthTokenData:
+):
     if refresh_token is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Refresh token cookie is required',
+            detail='Refresh token is required',
         )
 
     tokens = await authenticator.refresh_tokens(refresh_token)
@@ -102,5 +83,28 @@ async def refresh(
             detail='Invalid or expired refresh token',
         )
 
-    _set_refresh_token_cookie(response, tokens.refresh_token)
+    response.set_cookie(
+        key=REFRESH_TOKEN_COOKIE_NAME,
+        value=tokens.refresh_token,
+        httponly=True,
+    )
+
     return tokens
+
+
+@router.delete('/logout', response_model=LogoutResponse)
+async def logout(
+    refresh_token: RefreshTokenCookieDep,
+    authenticator: AuthenticatorDep,
+    response: Response,
+):
+    if refresh_token is None:
+        return LogoutResponse(success=False)
+
+    success = await authenticator.logout(refresh_token)
+
+    response.delete_cookie(
+        key=REFRESH_TOKEN_COOKIE_NAME,
+    )
+
+    return LogoutResponse(success=success)

@@ -2,7 +2,6 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from app.dependencies.session import SessionDep
 from app.repositories.comment import CommentRepository
 from app.repositories.costume import CostumeRepository
 from app.repositories.game import GameRepository
@@ -16,104 +15,51 @@ from app.repositories.role import RoleRepository
 from app.repositories.settlement_zone import SettlementZoneRepository
 from app.repositories.user import UserRepository
 
-
-async def get_user_repository(session: SessionDep):
-    yield UserRepository(session)
-
-
-UserRepositoryDep = Annotated[UserRepository, Depends(get_user_repository)]
-
-
-async def get_role_repository(session: SessionDep):
-    yield RoleRepository(session)
-
-
-RoleRepositoryDep = Annotated[RoleRepository, Depends(get_role_repository)]
-
-
-async def get_permission_repository(session: SessionDep):
-    yield PermissionRepository(session)
-
-
+UserRepositoryDep = Annotated[
+    UserRepository,
+    Depends(UserRepository),
+]
+RoleRepositoryDep = Annotated[
+    RoleRepository,
+    Depends(RoleRepository),
+]
 PermissionRepositoryDep = Annotated[
     PermissionRepository,
-    Depends(get_permission_repository),
+    Depends(PermissionRepository),
 ]
-
-
-async def get_nation_repository(session: SessionDep):
-    yield NationRepository(session)
-
-
-NationRepositoryDep = Annotated[NationRepository, Depends(get_nation_repository)]
-
-
-async def get_comment_repository(session: SessionDep):
-    yield CommentRepository(session)
-
-
-CommentRepositoryDep = Annotated[CommentRepository, Depends(get_comment_repository)]
-
-
-async def get_game_repository(session: SessionDep):
-    yield GameRepository(session)
-
-
-GameRepositoryDep = Annotated[GameRepository, Depends(get_game_repository)]
-
-
-async def get_game_question_repository(session: SessionDep):
-    yield GameQuestionRepository(session)
-
-
+NationRepositoryDep = Annotated[
+    NationRepository,
+    Depends(NationRepository),
+]
+CommentRepositoryDep = Annotated[
+    CommentRepository,
+    Depends(CommentRepository),
+]
+GameRepositoryDep = Annotated[
+    GameRepository,
+    Depends(GameRepository),
+]
 GameQuestionRepositoryDep = Annotated[
     GameQuestionRepository,
-    Depends(get_game_question_repository),
+    Depends(GameQuestionRepository),
 ]
-
-
-async def get_game_option_repository(session: SessionDep):
-    yield GameOptionRepository(session)
-
-
 GameOptionRepositoryDep = Annotated[
     GameOptionRepository,
-    Depends(get_game_option_repository),
+    Depends(GameOptionRepository),
 ]
-
-
-async def get_costume_repository(session: SessionDep):
-    yield CostumeRepository(session)
-
-
-CostumeRepositoryDep = Annotated[CostumeRepository, Depends(get_costume_repository)]
-
-
-async def get_settlement_zone_repository(session: SessionDep):
-    yield SettlementZoneRepository(session)
-
-
+CostumeRepositoryDep = Annotated[
+    CostumeRepository,
+    Depends(CostumeRepository),
+]
 SettlementZoneRepositoryDep = Annotated[
     SettlementZoneRepository,
-    Depends(get_settlement_zone_repository),
+    Depends(SettlementZoneRepository),
 ]
-
-
-async def get_nation_info_repository(session: SessionDep):
-    yield NationInfoRepository(session)
-
-
 NationInfoRepositoryDep = Annotated[
     NationInfoRepository,
-    Depends(get_nation_info_repository),
+    Depends(NationInfoRepository),
 ]
-
-
-async def get_refresh_session_repository(session: SessionDep):
-    yield RefreshSessionRepository(session)
-
-
 RefreshSessionRepositoryDep = Annotated[
     RefreshSessionRepository,
-    Depends(get_refresh_session_repository),
+    Depends(RefreshSessionRepository),
 ]
