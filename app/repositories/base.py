@@ -1,80 +1,84 @@
 from typing import Generic, Optional, Sequence, TypeVar
 from uuid import UUID
 
-from pydantic import BaseModel as PydanticBaseModel
-from sqlmodel import and_, select
-from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import SQLModel, select
 
-from app.dependencies.session import SessionDep
-from app.models.base import BaseModel
-
-Model = TypeVar('Model', bound=BaseModel)
+ModelType = TypeVar('ModelType', bound=SQLModel)
 
 
-class Repository(Generic[Model]):
-    def __init__(self, session: SessionDep, model: type[Model]):
-        self._session: AsyncSession = session
-        self._model: type[Model] = model
+class Repository(Generic[ModelType]):
+    def __init__(self, session: AsyncSession, model: type[ModelType]):
+        self._session = session
+        self._model = model
 
-    @property
-    def model(self) -> type[Model]:
-        return self._model
-
-    async def get(self, pk: UUID) -> Optional[Model]:
-        return await self._session.get(self.model, pk)
+    async def get(self, item_id: UUID) -> Optional[ModelType]:
+        return await self._session.get(self._model, item_id)
 
     async def fetch(
         self,
-        filters: Optional[PydanticBaseModel] = None,
-        offset: Optional[int] = None,
-        limit: Optional[int] = None,
-    ) -> Sequence[Model]:
-        stmt = select(self.model)
-        if filters is not None:
-            filter_stmt = and_(True)
-            for key, value in filters.model_dump().items():
-                if hasattr(self.model, key) and value is not None:
-                    filter_stmt = and_(filter_stmt, getattr(self.model, key) == value)
-            stmt = stmt.where(filter_stmt)
-        if offset is not None:
-            stmt = stmt.offset(offset)
-        if limit is not None:
-            stmt = stmt.limit(limit)
-        result = await self._session.exec(stmt)
-        return result.all()
+        offset: int = 0,
+        limit: int = 100,
+        filters: dict | None = None,
+    ) -> Sequence[ModelType]:
+        stmt = select(self._model)
 
-    async def save(self, instance: Model) -> Model:
+        if filters:
+            for field_name, value in filters.items():
+                stmt = stmt.where(getattr(self._model, field_name) == value)
+
+        stmt = stmt.offset(offset).limit(limit)
+
+        result = await self._session.execute(stmt)
+
+        return result.scalars().all()
+
+    async def fetch_one(
+        self,
+        filters: dict,
+    ) -> Optional[ModelType]:
+        stmt = select(self._model)
+
+        for field_name, value in filters.items():
+            stmt = stmt.where(getattr(self._model, field_name) == value)
+
+        result = await self._session.execute(stmt)
+
+        return result.scalars().first()
+
+    async def save(self, instance: ModelType) -> ModelType:
         self._session.add(instance)
         await self._session.commit()
         await self._session.refresh(instance)
-        return instance
 
-    async def save_all(self, instances: list[Model]) -> list[Model]:
-        self._session.add_all(instances)
-        await self._session.commit()
-        for instance in instances:
-            await self._session.refresh(instance)
-        return instances
-
-    async def delete(self, pk: UUID) -> Optional[Model]:
-        instance = await self.get(pk)
-        if instance is None:
-            return None
-        await self._session.delete(instance)
-        await self._session.commit()
         return instance
 
     async def update(
         self,
-        pk: UUID,
-        updates: PydanticBaseModel | dict,
-    ) -> Optional[Model]:
-        instance = await self.get(pk)
+        item_id: UUID,
+        data: dict,
+    ) -> Optional[ModelType]:
+        instance = await self.get(item_id)
+
         if instance is None:
             return None
-        update_data = updates if isinstance(updates, dict) else updates.model_dump()
-        for key, value in update_data.items():
-            if hasattr(instance, key):
-                setattr(instance, key, value)
-        await self.save(instance)
+
+        for key, value in data.items():
+            setattr(instance, key, value)
+
+        self._session.add(instance)
+        await self._session.commit()
+        await self._session.refresh(instance)
+
+        return instance
+
+    async def delete(self, item_id: UUID) -> Optional[ModelType]:
+        instance = await self.get(item_id)
+
+        if instance is None:
+            return None
+
+        await self._session.delete(instance)
+        await self._session.commit()
+
         return instance
