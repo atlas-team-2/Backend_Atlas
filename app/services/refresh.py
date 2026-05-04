@@ -15,6 +15,7 @@ class RefreshSessionService:
     ) -> Optional[RefreshSession]:
         repository = self.__refresh_session_repository
         user_sessions = await repository.get_user_sessions(user_id)
+
         valid_sessions = [session for session in user_sessions if session.is_valid]
 
         if len(valid_sessions) != 1:
@@ -33,8 +34,10 @@ class RefreshSessionService:
         session = await self.__refresh_session_repository.get_by_refresh_token_id(
             refresh_token_id,
         )
+
         if session is None or not session.is_valid:
             return None
+
         return session
 
     async def save_session(self, session: RefreshSession) -> RefreshSession:
@@ -44,5 +47,8 @@ class RefreshSessionService:
         self,
         session_create_data: RefreshSessionCreate,
     ) -> RefreshSession:
-        instance = RefreshSession(**session_create_data.model_dump())
+        instance = RefreshSession(
+            **session_create_data.model_dump(),
+        )
+
         return await self.__refresh_session_repository.save(instance)
