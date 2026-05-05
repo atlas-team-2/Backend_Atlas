@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID, uuid4
 
@@ -107,13 +107,17 @@ class Authenticator:
 
     async def create_tokens(self, auth_data: AuthData) -> Optional[AuthTokenData]:
         user = await self.__user_service.get_user_by_email(auth_data.email)
-
         if user is None:
             return None
 
-        password = auth_data.password.get_secret_value()
+        plain_password = auth_data.password
+        if hasattr(plain_password, 'get_secret_value'):
+            plain_password = plain_password.get_secret_value()
 
-        if not Hasher.verify_password(password, user.password_hash):
+        if not Hasher.verify_password(
+            plain_password,
+            user.password_hash,
+        ):
             return None
 
         return await self.__generate_tokens(user.id)
@@ -163,7 +167,9 @@ class Authenticator:
         now = datetime.now(timezone.utc)
 
         access_token_id = uuid4()
-        access_token_expires_at = now + settings.auth.access_token_lifetime
+        access_token_expires_at = now + timedelta(
+            seconds=settings.auth.access_token_lifetime_seconds,
+        )
 
         access_token = self.__create_user_token(
             user_id=user_id,
@@ -172,7 +178,9 @@ class Authenticator:
         )
 
         refresh_token_id = uuid4()
-        refresh_token_expires_at = now + settings.auth.refresh_token_lifetime
+        refresh_token_expires_at = now + timedelta(
+            seconds=settings.auth.refresh_token_lifetime_seconds,
+        )
 
         refresh_token = self.__create_user_token(
             user_id=user_id,
