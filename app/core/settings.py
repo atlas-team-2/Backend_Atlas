@@ -20,24 +20,16 @@ class DbSettings(BaseSettings):
 
 
 class AuthSettings(BaseSettings):
-    secret: SecretStr
+    secret: SecretStr = 'super_secure_secret_at_least_32_chars'
     algorithm: str = 'HS256'
-    access_token_lifetime_seconds: int = 900
-    refresh_token_lifetime_seconds: int = 604800
-
-    @property
-    def access_token_lifetime(self) -> timedelta:
-        return timedelta(seconds=self.access_token_lifetime_seconds)
-
-    @property
-    def refresh_token_lifetime(self) -> timedelta:
-        return timedelta(seconds=self.refresh_token_lifetime_seconds)
+    access_token_lifetime_seconds: int = int(timedelta(hours=1).total_seconds())
+    refresh_token_lifetime_seconds: int = int(timedelta(days=1).total_seconds())
 
 
 class Settings(BaseSettings):
     app: AppSettings = AppSettings()
-    db: DbSettings
-    auth: AuthSettings
+    db: DbSettings = DbSettings()
+    auth: AuthSettings = AuthSettings()
 
     model_config = SettingsConfigDict(
         env_file='.env',

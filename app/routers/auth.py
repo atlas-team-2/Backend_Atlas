@@ -64,7 +64,6 @@ async def me(
 
 @router.post('/refresh', response_model=AuthTokenData)
 async def refresh(
-    refresh_token: RefreshTokenCookieDep,
     authenticator: AuthenticatorDep,
     refresh_token: RefreshTokenCookieDep,
     response: Response,
