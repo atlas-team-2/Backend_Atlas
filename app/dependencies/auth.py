@@ -1,7 +1,11 @@
-from typing import Annotated, Optional
+from typing import Annotated, List, Optional
 
-from fastapi import Cookie, Depends, Header, HTTPException, status
+import jwt
+from fastapi import Cookie, Depends, HTTPException, Security, status
+from fastapi.security import SecurityScopes
 
+from app.core.security import AccessTokenDep
+from app.core.settings import settings
 from app.models.entities.user import User
 from app.services.authenticator import Authenticator
 
@@ -33,30 +37,54 @@ def _extract_token_from_header(
 
 
 async def get_current_user(
+    security_scopes: SecurityScopes,
     authenticator: AuthenticatorDep,
-    authorization: Annotated[Optional[str], Header()] = None,
-    token: Annotated[Optional[str], Header()] = None,
+    token: AccessTokenDep,
 ) -> User:
-    access_token = _extract_token_from_header(authorization, token)
+    """Аутентификация + проверка scopes через Security"""
 
-    if access_token is None:
+    try:
+        payload = jwt.decode(
+            token,
+            settings.auth.secret.get_secret_value(),
+            algorithms=[settings.auth.algorithm],
+        )
+    except jwt.PyJWTError as err:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Access token is required',
-        )
+            detail='Invalid token',
+            headers={'WWW-Authenticate': 'Bearer'},
+        ) from err
 
-    user = await authenticator.authenticate_user(access_token)
+    token_scopes = payload.get('scopes', [])
 
+    for scope in security_scopes.scopes:
+        if scope not in token_scopes:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f'Not enough permissions. Missing scope: {scope}',
+                headers={
+                    'WWW-Authenticate': f'Bearer scope="{security_scopes.scope_str}"'
+                },
+            )
+
+    user = await authenticator.authenticate_user(token)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Invalid or expired access token',
+            detail='Invalid or expired token',
         )
 
     return user
 
 
-CurrentUserDep = Annotated[
-    User,
-    Depends(get_current_user),
-]
+CurrentUserDep = Annotated[User, Security(get_current_user, scopes=[])]
+
+
+def require_scopes(required_scopes: List[str]):
+    async def dependency(
+        user: Annotated[User, Security(get_current_user, scopes=required_scopes)],
+    ) -> User:
+        return user
+
+    return Depends(dependency)

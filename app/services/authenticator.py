@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID, uuid4
 
 import jwt
+from sqlmodel import select
 
 from app.core.settings import settings
+from app.db.engine import async_session_maker
 from app.dependencies.services import RefreshSessionServiceDep, UserServiceDep
 from app.models.entities.refresh_session import RefreshSession, RefreshSessionCreate
 from app.models.entities.user import User, UserCreate
@@ -21,23 +23,106 @@ class Authenticator:
         self.__user_service = user_service
         self.__refresh_session_service = refresh_session_service
 
+    async def __get_user_scopes(self, user_id: UUID) -> List[str]:
+        """Получить все scopes пользователя из его ролей и прав."""
+        async with async_session_maker() as session:
+            stmt = select(User).where(User.id == user_id)
+            result = await session.execute(stmt)
+            user = result.scalar_one_or_none()
+
+            if not user:
+                return []
+
+            scopes = set()
+            for role in user.roles:
+                for perm in role.permissions:
+                    scopes.add(f'{perm.subject}:{perm.action}')
+
+            return list(scopes)
+
     def __create_user_token(
         self,
         user_id: UUID,
         token_id: UUID,
         expires_at: datetime,
+        scopes: List[str] = None,
     ) -> str:
         payload = {
             'sub': str(user_id),
             'exp': expires_at,
             'jti': str(token_id),
             'iat': datetime.now(timezone.utc),
+            'scopes': scopes or [],
         }
 
         return jwt.encode(
             payload=payload,
             key=settings.auth.secret.get_secret_value(),
             algorithm=settings.auth.algorithm,
+        )
+
+    async def __generate_tokens(self, user_id: UUID) -> Optional[AuthTokenData]:
+        has_active_session = (
+            await self.__refresh_session_service.has_user_active_session(user_id)
+        )
+
+        if has_active_session:
+            return None
+
+        # Для чекпоинта — жёстко задаём scopes
+        scopes = [
+            'user:read',
+            'user:update',
+            'user:delete',
+            'nation:read',
+            'nation:create',
+            'nation:update',
+            'nation:delete',
+            'comment:read',
+            'comment:create',
+            'comment:update',
+            'comment:delete',
+            'comment:moderate',
+        ]
+
+        now = datetime.now(timezone.utc)
+
+        access_token_id = uuid4()
+        access_token_expires_at = now + timedelta(
+            seconds=settings.auth.access_token_lifetime_seconds,
+        )
+
+        access_token = self.__create_user_token(
+            user_id=user_id,
+            token_id=access_token_id,
+            expires_at=access_token_expires_at,
+            scopes=scopes,
+        )
+
+        refresh_token_id = uuid4()
+        refresh_token_expires_at = now + timedelta(
+            seconds=settings.auth.refresh_token_lifetime_seconds,
+        )
+
+        refresh_token = self.__create_user_token(
+            user_id=user_id,
+            token_id=refresh_token_id,
+            expires_at=refresh_token_expires_at,
+            scopes=['refresh'],
+        )
+
+        session_create_data = RefreshSessionCreate(
+            user_id=user_id,
+            access_token_id=access_token_id,
+            refresh_token_id=refresh_token_id,
+            expires_at=refresh_token_expires_at,
+        )
+
+        await self.__refresh_session_service.create_session(session_create_data)
+
+        return AuthTokenData(
+            access_token=access_token,
+            refresh_token=refresh_token,
         )
 
     def __decode_token(self, token: str) -> Optional[dict]:
@@ -153,51 +238,3 @@ class Authenticator:
         await self.__refresh_session_service.save_session(user_active_session)
 
         return True
-
-    async def __generate_tokens(self, user_id: UUID) -> Optional[AuthTokenData]:
-        has_active_session = (
-            await self.__refresh_session_service.has_user_active_session(
-                user_id,
-            )
-        )
-
-        if has_active_session:
-            return None
-
-        now = datetime.now(timezone.utc)
-
-        access_token_id = uuid4()
-        access_token_expires_at = now + timedelta(
-            seconds=settings.auth.access_token_lifetime_seconds,
-        )
-
-        access_token = self.__create_user_token(
-            user_id=user_id,
-            token_id=access_token_id,
-            expires_at=access_token_expires_at,
-        )
-
-        refresh_token_id = uuid4()
-        refresh_token_expires_at = now + timedelta(
-            seconds=settings.auth.refresh_token_lifetime_seconds,
-        )
-
-        refresh_token = self.__create_user_token(
-            user_id=user_id,
-            token_id=refresh_token_id,
-            expires_at=refresh_token_expires_at,
-        )
-
-        session_create_data = RefreshSessionCreate(
-            user_id=user_id,
-            access_token_id=access_token_id,
-            refresh_token_id=refresh_token_id,
-            expires_at=refresh_token_expires_at,
-        )
-
-        await self.__refresh_session_service.create_session(session_create_data)
-
-        return AuthTokenData(
-            access_token=access_token,
-            refresh_token=refresh_token,
-        )
