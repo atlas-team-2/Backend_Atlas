@@ -41,7 +41,6 @@ async def get_current_user(
     authenticator: AuthenticatorDep,
     token: AccessTokenDep,
 ) -> User:
-    """Аутентификация + проверка scopes через Security"""
 
     try:
         payload = jwt.decode(

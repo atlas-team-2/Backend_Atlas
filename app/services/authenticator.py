@@ -24,7 +24,6 @@ class Authenticator:
         self.__refresh_session_service = refresh_session_service
 
     async def __get_user_scopes(self, user_id: UUID) -> List[str]:
-        """Получить все scopes пользователя из его ролей и прав."""
         async with async_session_maker() as session:
             stmt = select(User).where(User.id == user_id)
             result = await session.execute(stmt)
@@ -69,7 +68,6 @@ class Authenticator:
         if has_active_session:
             return None
 
-        # Для чекпоинта — жёстко задаём scopes
         scopes = [
             'user:read',
             'user:update',
