@@ -3,7 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from app.dependencies.auth import CurrentUserDep
+from app.dependencies.auth import CurrentUserDep, require_scopes
 from app.dependencies.services import UserServiceDep
 from app.models.entities.user import UserCreate, UserPublic, UserUpdate
 from app.schemas.filters import CommonListFilters
@@ -54,9 +54,9 @@ async def update_user(
     return await service.update_user(user_id, user_update)
 
 
-@router.delete('/{user_id}')
+@router.delete('/{user_id}', dependencies=[require_scopes(['user:delete'])])
 async def delete_user(
-    user_id: UUID,
     service: UserServiceDep,
+    user_id: UUID,
 ) -> Optional[UserPublic]:
     return await service.delete_user(user_id)
