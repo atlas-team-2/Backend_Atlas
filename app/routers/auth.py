@@ -5,6 +5,7 @@ from app.dependencies.auth import (
     AuthenticatorDep,
     CurrentUserDep,
     RefreshTokenCookieDep,
+    require_scopes,
 )
 from app.models.entities.user import UserCreate
 from app.schemas.auth import (
@@ -14,7 +15,6 @@ from app.schemas.auth import (
     MeResponse,
     RegisterResponse,
 )
-
 
 router = APIRouter(
     prefix='/auth',
@@ -55,7 +55,11 @@ async def login(
     return tokens
 
 
-@router.get('/me', response_model=MeResponse)
+@router.get(
+    '/me',
+    response_model=MeResponse,
+    dependencies=[require_scopes(['user:read'])],
+)
 async def me(
     current_user: CurrentUserDep,
 ):

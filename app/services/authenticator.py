@@ -1,12 +1,11 @@
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID, uuid4
 
 import jwt
-from sqlmodel import select
 
+from app.core.security import ACCESS_TOKEN_SCOPES
 from app.core.settings import settings
-from app.db.engine import async_session_maker
 from app.dependencies.services import RefreshSessionServiceDep, UserServiceDep
 from app.models.entities.refresh_session import RefreshSession, RefreshSessionCreate
 from app.models.entities.user import User, UserCreate
@@ -23,28 +22,12 @@ class Authenticator:
         self.__user_service = user_service
         self.__refresh_session_service = refresh_session_service
 
-    async def __get_user_scopes(self, user_id: UUID) -> List[str]:
-        async with async_session_maker() as session:
-            stmt = select(User).where(User.id == user_id)
-            result = await session.execute(stmt)
-            user = result.scalar_one_or_none()
-
-            if not user:
-                return []
-
-            scopes = set()
-            for role in user.roles:
-                for perm in role.permissions:
-                    scopes.add(f'{perm.subject}:{perm.action}')
-
-            return list(scopes)
-
     def __create_user_token(
         self,
         user_id: UUID,
         token_id: UUID,
         expires_at: datetime,
-        scopes: List[str] = None,
+        scopes: list[str] | None = None,
     ) -> str:
         payload = {
             'sub': str(user_id),
@@ -68,20 +51,7 @@ class Authenticator:
         if has_active_session:
             return None
 
-        scopes = [
-            'user:read',
-            'user:update',
-            'user:delete',
-            'nation:read',
-            'nation:create',
-            'nation:update',
-            'nation:delete',
-            'comment:read',
-            'comment:create',
-            'comment:update',
-            'comment:delete',
-            'comment:moderate',
-        ]
+        scopes = list(ACCESS_TOKEN_SCOPES)
 
         now = datetime.now(timezone.utc)
 
@@ -206,6 +176,11 @@ class Authenticator:
         return await self.__generate_tokens(user.id)
 
     async def refresh_tokens(self, refresh_token: str) -> Optional[AuthTokenData]:
+        decoded_payload = self.__decode_token(refresh_token)
+        token_scopes = decoded_payload.get('scopes', []) if decoded_payload else []
+        if 'refresh' not in token_scopes:
+            return None
+
         token_data = await self.__get_user_token_data(refresh_token)
 
         if token_data is None:

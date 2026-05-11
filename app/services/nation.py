@@ -2,7 +2,8 @@ from typing import Optional, Sequence
 from uuid import UUID
 
 from app.dependencies.repositories import NationRepositoryDep
-from app.models.entities.nation import Nation, NationCreate, NationUpdate, NationPublic
+from app.models.entities.nation import Nation, NationCreate, NationUpdate
+
 
 class NationService:
     def __init__(self, nation_repository: NationRepositoryDep):
@@ -18,7 +19,9 @@ class NationService:
     async def get_nation(self, nation_id: UUID) -> Optional[Nation]:
         return await self.nation_repository.get(nation_id)
 
-    async def update_nation(self, nation_id: UUID, nation_update: NationUpdate) -> Optional[Nation]:
+    async def update_nation(
+        self, nation_id: UUID, nation_update: NationUpdate
+    ) -> Optional[Nation]:
         data = nation_update.model_dump(exclude_unset=True)
         return await self.nation_repository.update(nation_id, data)
 

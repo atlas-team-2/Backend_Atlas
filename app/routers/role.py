@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
+from app.dependencies.auth import require_scopes
 from app.dependencies.services import RoleServiceDep
 from app.models.entities.role import RoleCreate, RolePublic, RoleUpdate
 from app.schemas.filters import CommonListFilters
@@ -12,16 +13,18 @@ router = APIRouter(
     tags=['roles'],
 )
 
+CommonListFiltersDep = Annotated[CommonListFilters, Depends()]
 
-@router.get('/')
+
+@router.get('/', dependencies=[require_scopes(['role:read'])])
 async def get_roles(
     service: RoleServiceDep,
-    filters: Annotated[CommonListFilters, Depends()],
+    filters: CommonListFiltersDep,
 ) -> Sequence[RolePublic]:
     return await service.get_roles(offset=filters.offset, limit=filters.limit)
 
 
-@router.post('/')
+@router.post('/', dependencies=[require_scopes(['role:create'])])
 async def create_role(
     role_create: RoleCreate,
     service: RoleServiceDep,
@@ -29,7 +32,7 @@ async def create_role(
     return await service.create_role(role_create)
 
 
-@router.get('/{role_id}')
+@router.get('/{role_id}', dependencies=[require_scopes(['role:read'])])
 async def get_role(
     role_id: UUID,
     service: RoleServiceDep,
@@ -37,7 +40,7 @@ async def get_role(
     return await service.get_role(role_id)
 
 
-@router.put('/{role_id}')
+@router.put('/{role_id}', dependencies=[require_scopes(['role:update'])])
 async def update_role(
     role_id: UUID,
     role_update: RoleUpdate,
@@ -46,7 +49,7 @@ async def update_role(
     return await service.update_role(role_id, role_update)
 
 
-@router.delete('/{role_id}')
+@router.delete('/{role_id}', dependencies=[require_scopes(['role:delete'])])
 async def delete_role(
     role_id: UUID,
     service: RoleServiceDep,

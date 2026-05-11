@@ -1,5 +1,8 @@
+# ruff: noqa: F821
 from typing import Optional
-from sqlmodel import SQLModel, Field, Relationship
+
+from sqlmodel import Field, Relationship, SQLModel
+
 from app.models.base import BaseModel
 
 
@@ -11,11 +14,11 @@ class NationBase(SQLModel):
 
 
 class Nation(BaseModel, NationBase, table=True):
-    info: Optional["NationInfo"] = Relationship(back_populates="nation")
-    zones: list["SettlementZone"] = Relationship(back_populates="nation")
-    costumes: list["Costume"] = Relationship(back_populates="nation")
-    comments: list["Comment"] = Relationship(back_populates="nation")
-    games: list["Game"] = Relationship(back_populates="nation")
+    info: Optional['NationInfo'] = Relationship(back_populates='nation')
+    zones: list['SettlementZone'] = Relationship(back_populates='nation')
+    costumes: list['Costume'] = Relationship(back_populates='nation')
+    comments: list['Comment'] = Relationship(back_populates='nation')
+    games: list['Game'] = Relationship(back_populates='nation')
 
 
 class NationCreate(NationBase):

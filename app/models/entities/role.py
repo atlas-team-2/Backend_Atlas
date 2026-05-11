@@ -1,6 +1,10 @@
+# ruff: noqa: F821
 from typing import Optional
-from sqlmodel import SQLModel, Field, Relationship
+
+from sqlmodel import Field, Relationship, SQLModel
+
 from app.models.base import BaseModel
+
 from .link_models import RolePermission, UserRole
 
 
@@ -10,8 +14,10 @@ class RoleBase(SQLModel):
 
 
 class Role(BaseModel, RoleBase, table=True):
-    permissions: list["Permission"] = Relationship(back_populates="roles", link_model=RolePermission)
-    users: list["User"] = Relationship(back_populates="roles", link_model=UserRole)
+    permissions: list['Permission'] = Relationship(
+        back_populates='roles', link_model=RolePermission
+    )
+    users: list['User'] = Relationship(back_populates='roles', link_model=UserRole)
 
 
 class RoleCreate(RoleBase):

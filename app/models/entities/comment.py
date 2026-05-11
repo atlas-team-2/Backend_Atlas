@@ -1,19 +1,23 @@
+# ruff: noqa: F821
 from typing import Optional
 from uuid import UUID
-from sqlmodel import SQLModel, Field, Relationship
+
+from sqlmodel import Field, Relationship, SQLModel
+
 from app.models.base import BaseModel
 
 
 class CommentBase(SQLModel):
-    nation_id: UUID = Field(foreign_key="nation.id")
-    user_id: UUID = Field(foreign_key="user.id")
+    nation_id: UUID = Field(foreign_key='nation.id')
+    user_id: UUID = Field(foreign_key='user.id')
     text: str
 
 
 class Comment(BaseModel, CommentBase, table=True):
     is_approved: bool = False
-    nation: "Nation" = Relationship(back_populates="comments")
-    user: "User" = Relationship(back_populates="comments")
+    nation: 'Nation' = Relationship(back_populates='comments')
+    user: 'User' = Relationship(back_populates='comments')
+
 
 class CommentCreate(CommentBase):
     pass
