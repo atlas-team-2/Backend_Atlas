@@ -1,13 +1,11 @@
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID, uuid4
 
 import jwt
-from sqlmodel import select
 
 from app.core.security import ACCESS_TOKEN_SCOPES
 from app.core.settings import settings
-from app.db.engine import async_session_maker
 from app.dependencies.services import RefreshSessionServiceDep, UserServiceDep
 from app.models.entities.refresh_session import RefreshSession, RefreshSessionCreate
 from app.models.entities.user import User, UserCreate
@@ -23,22 +21,6 @@ class Authenticator:
     ):
         self.__user_service = user_service
         self.__refresh_session_service = refresh_session_service
-
-    async def __get_user_scopes(self, user_id: UUID) -> List[str]:
-        async with async_session_maker() as session:
-            stmt = select(User).where(User.id == user_id)
-            result = await session.execute(stmt)
-            user = result.scalar_one_or_none()
-
-            if not user:
-                return []
-
-            scopes = set()
-            for role in user.roles:
-                for perm in role.permissions:
-                    scopes.add(f'{perm.subject}:{perm.action}')
-
-            return list(scopes)
 
     def __create_user_token(
         self,
@@ -69,7 +51,7 @@ class Authenticator:
         if has_active_session:
             return None
 
-        scopes = list(ACCESS_TOKEN_SCOPES)
+        scopes = await self.__user_service.get_user_scopes(user_id)
 
         now = datetime.now(timezone.utc)
 
