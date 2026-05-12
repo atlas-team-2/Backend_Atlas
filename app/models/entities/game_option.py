@@ -1,11 +1,14 @@
+# ruff: noqa: F821
 from typing import Optional
 from uuid import UUID
-from sqlmodel import SQLModel, Field, Relationship
+
+from sqlmodel import Field, Relationship, SQLModel
+
 from app.models.base import BaseModel
 
 
 class GameOptionBase(SQLModel):
-    question_id: UUID = Field(foreign_key="gamequestion.id")
+    question_id: UUID = Field(foreign_key='gamequestion.id')
     text: str
     is_correct: bool
     image_url: Optional[str] = None
@@ -13,7 +16,7 @@ class GameOptionBase(SQLModel):
 
 
 class GameOption(BaseModel, GameOptionBase, table=True):
-    question: "GameQuestion" = Relationship(back_populates="options")
+    question: 'GameQuestion' = Relationship(back_populates='options')
 
 
 class GameOptionCreate(GameOptionBase):
@@ -26,7 +29,7 @@ class GameOptionUpdate(SQLModel):
     is_correct: Optional[bool] = None
     image_url: Optional[str] = None
     explanation: Optional[str] = None
-    test_field: str | None = None # УДАЛИТЬ ПОТОМ
+    test_field: str | None = None  # УДАЛИТЬ ПОТОМ
 
 
 class GameOptionPublic(GameOptionBase, BaseModel):

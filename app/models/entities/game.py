@@ -1,26 +1,29 @@
+# ruff: noqa: F821
+from enum import Enum
 from typing import Optional
 from uuid import UUID
-from sqlmodel import SQLModel, Field, Relationship
+
+from sqlmodel import Field, Relationship, SQLModel
+
 from app.models.base import BaseModel
-from enum import Enum
 
 
 class GameType(str, Enum):
-    DISH = "dish"
-    HOLIDAY = "holiday"
-    ORNAMENT = "ornament"
+    DISH = 'dish'
+    HOLIDAY = 'holiday'
+    ORNAMENT = 'ornament'
 
 
 class GameBase(SQLModel):
-    nation_id: UUID = Field(foreign_key="nation.id")
+    nation_id: UUID = Field(foreign_key='nation.id')
     type: GameType
     title: str
     description: Optional[str] = None
 
 
 class Game(BaseModel, GameBase, table=True):
-    nation: "Nation" = Relationship(back_populates="games")
-    questions: list["GameQuestion"] = Relationship(back_populates="game")
+    nation: 'Nation' = Relationship(back_populates='games')
+    questions: list['GameQuestion'] = Relationship(back_populates='game')
 
 
 class GameCreate(GameBase):

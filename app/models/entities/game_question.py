@@ -1,19 +1,22 @@
+# ruff: noqa: F821
 from typing import Optional
 from uuid import UUID
-from sqlmodel import SQLModel, Field, Relationship
+
+from sqlmodel import Field, Relationship, SQLModel
+
 from app.models.base import BaseModel
 
 
 class GameQuestionBase(SQLModel):
-    game_id: UUID = Field(foreign_key="game.id")
+    game_id: UUID = Field(foreign_key='game.id')
     question_text: str
     image_url: Optional[str] = None
     order_index: int
 
 
 class GameQuestion(BaseModel, GameQuestionBase, table=True):
-    game: "Game" = Relationship(back_populates="questions")
-    options: list["GameOption"] = Relationship(back_populates="question")
+    game: 'Game' = Relationship(back_populates='questions')
+    options: list['GameOption'] = Relationship(back_populates='question')
 
 
 class GameQuestionCreate(GameQuestionBase):

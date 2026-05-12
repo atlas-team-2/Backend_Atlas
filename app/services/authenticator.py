@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 import jwt
 from sqlmodel import select
 
+from app.core.security import ACCESS_TOKEN_SCOPES
 from app.core.settings import settings
 from app.db.engine import async_session_maker
 from app.dependencies.services import RefreshSessionServiceDep, UserServiceDep
@@ -44,7 +45,7 @@ class Authenticator:
         user_id: UUID,
         token_id: UUID,
         expires_at: datetime,
-        scopes: List[str] = None,
+        scopes: list[str] | None = None,
     ) -> str:
         payload = {
             'sub': str(user_id),
@@ -68,20 +69,7 @@ class Authenticator:
         if has_active_session:
             return None
 
-        scopes = [
-            'user:read',
-            'user:update',
-            'user:delete',
-            'nation:read',
-            'nation:create',
-            'nation:update',
-            'nation:delete',
-            'comment:read',
-            'comment:create',
-            'comment:update',
-            'comment:delete',
-            'comment:moderate',
-        ]
+        scopes = list(ACCESS_TOKEN_SCOPES)
 
         now = datetime.now(timezone.utc)
 
@@ -206,6 +194,11 @@ class Authenticator:
         return await self.__generate_tokens(user.id)
 
     async def refresh_tokens(self, refresh_token: str) -> Optional[AuthTokenData]:
+        decoded_payload = self.__decode_token(refresh_token)
+        token_scopes = decoded_payload.get('scopes', []) if decoded_payload else []
+        if 'refresh' not in token_scopes:
+            return None
+
         token_data = await self.__get_user_token_data(refresh_token)
 
         if token_data is None:

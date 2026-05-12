@@ -1,19 +1,22 @@
+# ruff: noqa: F821
 from typing import Optional
 from uuid import UUID
-from sqlmodel import SQLModel, Field, Relationship, Column
+
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlmodel import Column, Field, Relationship, SQLModel
+
 from app.models.base import BaseModel
 
 
 class SettlementZoneBase(SQLModel):
-    nation_id: UUID = Field(foreign_key="nation.id")
+    nation_id: UUID = Field(foreign_key='nation.id')
     region_name: str
     polygon_data: list = Field(sa_column=Column(JSONB))
     color: Optional[str] = None
 
 
 class SettlementZone(BaseModel, SettlementZoneBase, table=True):
-    nation: "Nation" = Relationship(back_populates="zones")
+    nation: 'Nation' = Relationship(back_populates='zones')
 
 
 class SettlementZoneCreate(SettlementZoneBase):

@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
+from app.dependencies.auth import require_scopes
 from app.dependencies.services import SettlementZoneServiceDep
 from app.models.entities.settlement_zone import (
     SettlementZoneCreate,
@@ -16,18 +17,21 @@ router = APIRouter(
     tags=['settlement-zones'],
 )
 
+CommonListFiltersDep = Annotated[CommonListFilters, Depends()]
 
-@router.get('/')
+
+@router.get('/', dependencies=[require_scopes(['settlement_zone:read'])])
 async def get_settlement_zones(
     service: SettlementZoneServiceDep,
-    filters: Annotated[CommonListFilters, Depends()],
+    filters: CommonListFiltersDep,
 ) -> Sequence[SettlementZonePublic]:
     return await service.get_settlement_zones(
-        offset=filters.offset, limit=filters.limit
+        offset=filters.offset,
+        limit=filters.limit,
     )
 
 
-@router.post('/')
+@router.post('/', dependencies=[require_scopes(['settlement_zone:create'])])
 async def create_settlement_zone(
     settlement_zone_create: SettlementZoneCreate,
     service: SettlementZoneServiceDep,
@@ -35,7 +39,7 @@ async def create_settlement_zone(
     return await service.create_settlement_zone(settlement_zone_create)
 
 
-@router.get('/{zone_id}')
+@router.get('/{zone_id}', dependencies=[require_scopes(['settlement_zone:read'])])
 async def get_settlement_zone(
     zone_id: UUID,
     service: SettlementZoneServiceDep,
@@ -43,7 +47,7 @@ async def get_settlement_zone(
     return await service.get_settlement_zone(zone_id)
 
 
-@router.put('/{zone_id}')
+@router.put('/{zone_id}', dependencies=[require_scopes(['settlement_zone:update'])])
 async def update_settlement_zone(
     zone_id: UUID,
     settlement_zone_update: SettlementZoneUpdate,
@@ -52,7 +56,7 @@ async def update_settlement_zone(
     return await service.update_settlement_zone(zone_id, settlement_zone_update)
 
 
-@router.delete('/{zone_id}')
+@router.delete('/{zone_id}', dependencies=[require_scopes(['settlement_zone:delete'])])
 async def delete_settlement_zone(
     zone_id: UUID,
     service: SettlementZoneServiceDep,

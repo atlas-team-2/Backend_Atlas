@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
+from app.dependencies.auth import require_scopes
 from app.dependencies.services import PermissionServiceDep
 from app.models.entities.permission import (
     PermissionCreate,
@@ -16,16 +17,18 @@ router = APIRouter(
     tags=['permissions'],
 )
 
+CommonListFiltersDep = Annotated[CommonListFilters, Depends()]
 
-@router.get('/')
+
+@router.get('/', dependencies=[require_scopes(['permission:read'])])
 async def get_permissions(
     service: PermissionServiceDep,
-    filters: Annotated[CommonListFilters, Depends()],
+    filters: CommonListFiltersDep,
 ) -> Sequence[PermissionPublic]:
     return await service.get_permissions(offset=filters.offset, limit=filters.limit)
 
 
-@router.post('/')
+@router.post('/', dependencies=[require_scopes(['permission:create'])])
 async def create_permission(
     permission_create: PermissionCreate,
     service: PermissionServiceDep,
@@ -33,7 +36,7 @@ async def create_permission(
     return await service.create_permission(permission_create)
 
 
-@router.get('/{permission_id}')
+@router.get('/{permission_id}', dependencies=[require_scopes(['permission:read'])])
 async def get_permission(
     permission_id: UUID,
     service: PermissionServiceDep,
@@ -41,7 +44,7 @@ async def get_permission(
     return await service.get_permission(permission_id)
 
 
-@router.put('/{permission_id}')
+@router.put('/{permission_id}', dependencies=[require_scopes(['permission:update'])])
 async def update_permission(
     permission_id: UUID,
     permission_update: PermissionUpdate,
@@ -50,7 +53,7 @@ async def update_permission(
     return await service.update_permission(permission_id, permission_update)
 
 
-@router.delete('/{permission_id}')
+@router.delete('/{permission_id}', dependencies=[require_scopes(['permission:delete'])])
 async def delete_permission(
     permission_id: UUID,
     service: PermissionServiceDep,

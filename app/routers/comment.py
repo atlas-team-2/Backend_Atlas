@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
+from app.dependencies.auth import require_scopes
 from app.dependencies.services import CommentServiceDep
 from app.models.entities.comment import CommentCreate, CommentPublic, CommentUpdate
 from app.schemas.filters import CommonListFilters
@@ -12,16 +13,18 @@ router = APIRouter(
     tags=['comments'],
 )
 
+CommonListFiltersDep = Annotated[CommonListFilters, Depends()]
 
-@router.get('/')
+
+@router.get('/', dependencies=[require_scopes(['comment:read'])])
 async def get_comments(
     service: CommentServiceDep,
-    filters: Annotated[CommonListFilters, Depends()],
+    filters: CommonListFiltersDep,
 ) -> Sequence[CommentPublic]:
     return await service.get_comments(offset=filters.offset, limit=filters.limit)
 
 
-@router.post('/')
+@router.post('/', dependencies=[require_scopes(['comment:create'])])
 async def create_comment(
     comment_create: CommentCreate,
     service: CommentServiceDep,
@@ -29,7 +32,7 @@ async def create_comment(
     return await service.create_comment(comment_create)
 
 
-@router.get('/{comment_id}')
+@router.get('/{comment_id}', dependencies=[require_scopes(['comment:read'])])
 async def get_comment(
     comment_id: UUID,
     service: CommentServiceDep,
@@ -37,7 +40,7 @@ async def get_comment(
     return await service.get_comment(comment_id)
 
 
-@router.put('/{comment_id}')
+@router.put('/{comment_id}', dependencies=[require_scopes(['comment:update'])])
 async def update_comment(
     comment_id: UUID,
     comment_update: CommentUpdate,
@@ -46,7 +49,7 @@ async def update_comment(
     return await service.update_comment(comment_id, comment_update)
 
 
-@router.delete('/{comment_id}')
+@router.delete('/{comment_id}', dependencies=[require_scopes(['comment:delete'])])
 async def delete_comment(
     comment_id: UUID,
     service: CommentServiceDep,

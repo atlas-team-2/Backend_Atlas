@@ -16,7 +16,7 @@ router = APIRouter(
 CommonListFiltersDep = Annotated[CommonListFilters, Depends()]
 
 
-@router.get('/')
+@router.get('/', dependencies=[require_scopes(['user:read'])])
 async def get_users(
     service: UserServiceDep,
     filters: CommonListFiltersDep,
@@ -24,7 +24,7 @@ async def get_users(
     return await service.get_users(offset=filters.offset, limit=filters.limit)
 
 
-@router.post('/')
+@router.post('/', dependencies=[require_scopes(['user:create'])])
 async def create_user(
     user_create: UserCreate,
     service: UserServiceDep,
@@ -32,12 +32,12 @@ async def create_user(
     return await service.create_user(user_create)
 
 
-@router.get('/me')
+@router.get('/me', dependencies=[require_scopes(['user:read'])])
 async def get_me(current_user: CurrentUserDep) -> UserPublic:
     return current_user
 
 
-@router.get('/{user_id}')
+@router.get('/{user_id}', dependencies=[require_scopes(['user:read'])])
 async def get_user(
     user_id: UUID,
     service: UserServiceDep,
@@ -45,7 +45,7 @@ async def get_user(
     return await service.get_user(user_id)
 
 
-@router.put('/{user_id}')
+@router.put('/{user_id}', dependencies=[require_scopes(['user:update'])])
 async def update_user(
     user_id: UUID,
     user_update: UserUpdate,
