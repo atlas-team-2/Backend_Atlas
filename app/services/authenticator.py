@@ -4,7 +4,6 @@ from uuid import UUID, uuid4
 
 import jwt
 
-from app.core.security import ACCESS_TOKEN_SCOPES
 from app.core.settings import settings
 from app.dependencies.services import RefreshSessionServiceDep, UserServiceDep
 from app.models.entities.refresh_session import RefreshSession, RefreshSessionCreate
