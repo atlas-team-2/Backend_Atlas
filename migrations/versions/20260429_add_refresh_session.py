@@ -9,7 +9,6 @@ Create Date: 2026-04-29 10:30:00.000000
 from typing import Sequence, Union
 
 import sqlalchemy as sa
-import sqlmodel
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
@@ -20,14 +19,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    uuid_type = postgresql.UUID(as_uuid=True)
+
     op.create_table(
         'refreshsession',
-        sa.Column('id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
+        sa.Column('id', uuid_type, nullable=False),
         sa.Column('created_at', postgresql.TIMESTAMP(timezone=True), nullable=False),
         sa.Column('updated_at', postgresql.TIMESTAMP(timezone=True), nullable=False),
-        sa.Column('user_id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
-        sa.Column('access_token_id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
-        sa.Column('refresh_token_id', sqlmodel.sql.sqltypes.GUID(), nullable=False),
+        sa.Column('user_id', uuid_type, nullable=False),
+        sa.Column('access_token_id', uuid_type, nullable=False),
+        sa.Column('refresh_token_id', uuid_type, nullable=False),
         sa.Column('expires_at', postgresql.TIMESTAMP(timezone=True), nullable=False),
         sa.Column('is_invalidated', sa.Boolean(), nullable=False),
         sa.ForeignKeyConstraint(['user_id'], ['user.id']),

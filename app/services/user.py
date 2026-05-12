@@ -21,6 +21,20 @@ class UserService:
     async def get_user_by_email(self, email: str) -> Optional[User]:
         return await self.user_repository.get_by_email(email)
 
+    async def get_user_scopes(self, user_id: UUID) -> list[str]:
+        user = await self.user_repository.get_with_roles_permissions(user_id)
+
+        if user is None:
+            return []
+
+        scopes = {
+            f'{permission.subject}:{permission.action}'
+            for role in user.roles
+            for permission in role.permissions
+        }
+
+        return sorted(scopes)
+
     async def update_user(
         self,
         user_id: UUID,
