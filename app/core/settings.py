@@ -27,10 +27,18 @@ class AuthSettings(BaseSettings):
     refresh_token_lifetime_seconds: int = int(timedelta(days=1).total_seconds())
 
 
+class RbacSettings(BaseSettings):
+    admin_role: str = 'admin'
+    public_role: str = 'public'
+    admin_email: str = 'admin@atlas.ru'
+    admin_password: str = 'admin'
+
+
 class Settings(BaseSettings):
     app: AppSettings = AppSettings()
     db: DbSettings = DbSettings()
     auth: AuthSettings = AuthSettings()
+    rbac: RbacSettings = RbacSettings()
 
     model_config = SettingsConfigDict(
         env_file='.env',
