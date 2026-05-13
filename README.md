@@ -38,6 +38,10 @@ uv
 | AUTH__ALGORITHM                      | string | Алгоритм подписи JWT                                                 | HS256                                         |   |
 | AUTH__ACCESS_TOKEN_LIFETIME_SECONDS  | int    | Время жизни access-токена в секундах                                 | 300                                           |   |
 | AUTH__REFRESH_TOKEN_LIFETIME_SECONDS | int    | Время жизни refresh-токена и refresh-сессии в секундах               | 3600                                          |   |
+| RBAC__ADMIN_ROLE                     | string | Название роли администратора                                         | admin                                         |   |
+| RBAC__PUBLIC_ROLE                    | string | Название публичной роли (присваивается всем при регистрации)         | public                                        |   |
+| RBAC__ADMIN_EMAIL                    | string | Email администратора (создаётся при старте приложения)               | admin@atlas.ru                                |   |
+| RBAC__ADMIN_PASSWORD                 | string | Пароль администратора (создаётся при старте приложения)              | admin                                         |   |
 
 Файл .env.example
 В проекте присутствует файл .env.example со всеми необходимыми переменными среды и значениями по умолчанию.

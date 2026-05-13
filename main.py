@@ -1,6 +1,12 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from app.core.settings import settings
+from app.db.engine import async_session_maker
+from app.repositories.permission import PermissionRepository
+from app.repositories.role import RoleRepository
+from app.repositories.user import UserRepository
 from app.routers import (
     auth,
     comment,
@@ -15,11 +21,26 @@ from app.routers import (
     settlement_zone,
     user,
 )
+from app.services.bootstrapper import Bootstrapper
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    async with async_session_maker() as session:
+        bootstrapper = Bootstrapper(
+            role_repository=RoleRepository(session),
+            permission_repository=PermissionRepository(session),
+            user_repository=UserRepository(session),
+        )
+        await bootstrapper.bootstrap()
+    yield
+
 
 app = FastAPI(
     title=settings.app.name,
     version=settings.app.version,
     description=settings.app.description,
+    lifespan=lifespan,
 )
 
 
