@@ -1,10 +1,12 @@
+# ruff: noqa: F821
 from typing import Optional
-from uuid import UUID
-from pydantic import EmailStr
-from sqlmodel import SQLModel, Field, Relationship
-from app.models.base import BaseModel
-from .link_models import UserRole
 
+from pydantic import EmailStr
+from sqlmodel import Relationship, SQLModel
+
+from app.models.base import BaseModel
+
+from .link_models import UserRole
 
 
 class UserBase(SQLModel):
@@ -13,8 +15,8 @@ class UserBase(SQLModel):
 
 class User(BaseModel, UserBase, table=True):
     password_hash: str
-    roles: list["Role"] = Relationship(back_populates="users", link_model=UserRole)
-    comments: list["Comment"] = Relationship(back_populates="user")
+    roles: list['Role'] = Relationship(back_populates='users', link_model=UserRole)
+    comments: list['Comment'] = Relationship(back_populates='user')
 
 
 class UserCreate(UserBase):

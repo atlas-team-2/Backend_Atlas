@@ -2,7 +2,8 @@ from typing import Optional, Sequence
 from uuid import UUID
 
 from app.dependencies.repositories import RoleRepositoryDep
-from app.models.entities.role import Role, RoleCreate, RoleUpdate, RolePublic
+from app.models.entities.role import Role, RoleCreate, RoleUpdate
+
 
 class RoleService:
     def __init__(self, role_repository: RoleRepositoryDep):
@@ -18,7 +19,9 @@ class RoleService:
     async def get_role(self, role_id: UUID) -> Optional[Role]:
         return await self.role_repository.get(role_id)
 
-    async def update_role(self, role_id: UUID, role_update: RoleUpdate) -> Optional[Role]:
+    async def update_role(
+        self, role_id: UUID, role_update: RoleUpdate
+    ) -> Optional[Role]:
         data = role_update.model_dump(exclude_unset=True)
         return await self.role_repository.update(role_id, data)
 

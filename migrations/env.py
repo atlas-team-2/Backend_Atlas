@@ -5,17 +5,15 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-
-from app.core.settings import settings
 from sqlmodel import SQLModel
-from app.models.entities import *
-from app.db.engine import form_db_url
 
+from app.db.engine import form_db_url
+from app.models.entities import *  # noqa: F403
 
 config = context.config
 
 
-config.set_main_option("sqlalchemy.url", form_db_url())
+config.set_main_option('sqlalchemy.url', form_db_url())
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
@@ -25,13 +23,13 @@ target_metadata = SQLModel.metadata
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
-    url = config.get_main_option("sqlalchemy.url")
+    url = config.get_main_option('sqlalchemy.url')
 
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
-        dialect_opts={"paramstyle": "named"},
+        dialect_opts={'paramstyle': 'named'},
     )
 
     with context.begin_transaction():
@@ -50,7 +48,7 @@ async def run_async_migrations() -> None:
     """Run migrations in async mode — как в примере с пары."""
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section),
-        prefix="sqlalchemy.",
+        prefix='sqlalchemy.',
         poolclass=pool.NullPool,
     )
 
