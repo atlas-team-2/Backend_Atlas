@@ -77,3 +77,6 @@ class UserService:
 
     async def delete_user(self, user_id: UUID) -> Optional[User]:
         return await self.user_repository.delete(user_id)
+
+    async def update_password_hash(self, user_id: UUID, password_hash: str) -> Optional[User]:
+        return await self.user_repository.update(user_id, {'password_hash': password_hash})

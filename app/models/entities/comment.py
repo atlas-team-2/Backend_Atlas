@@ -9,14 +9,13 @@ from app.models.base import BaseModel
 
 class CommentBase(SQLModel):
     nation_id: UUID = Field(foreign_key='nation.id')
-    user_id: UUID = Field(foreign_key='user.id')
+    author_name: str
     text: str
 
 
 class Comment(BaseModel, CommentBase, table=True):
     is_approved: bool = False
     nation: 'Nation' = Relationship(back_populates='comments')
-    user: 'User' = Relationship(back_populates='comments')
 
 
 class CommentCreate(CommentBase):
