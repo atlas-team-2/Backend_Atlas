@@ -52,6 +52,7 @@ OAUTH2_SCOPES = {
     'refresh': 'Refresh token access',
 }
 
+ACCESS_TOKEN_SCOPES = [scope for scope in OAUTH2_SCOPES if scope != 'refresh']
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl='/api/v1/auth/login',

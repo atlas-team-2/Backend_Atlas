@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import Depends
 
 from app.services.comment import CommentService
+from app.services.email import EmailService
 from app.services.costume import CostumeService
 from app.services.game import GameService
 from app.services.game_option import GameOptionService
@@ -32,3 +33,4 @@ RefreshSessionServiceDep = Annotated[
     RefreshSessionService,
     Depends(RefreshSessionService),
 ]
+EmailServiceDep = Annotated[EmailService, Depends(EmailService)]

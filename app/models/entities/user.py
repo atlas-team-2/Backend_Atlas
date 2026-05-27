@@ -16,7 +16,6 @@ class UserBase(SQLModel):
 class User(BaseModel, UserBase, table=True):
     password_hash: str
     roles: list['Role'] = Relationship(back_populates='users', link_model=UserRole)
-    comments: list['Comment'] = Relationship(back_populates='user')
 
 
 class UserCreate(UserBase):

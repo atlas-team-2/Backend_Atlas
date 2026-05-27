@@ -1,4 +1,5 @@
 from .comment import Comment, CommentBase, CommentCreate, CommentPublic, CommentUpdate
+from .email import EmailAction, EmailNotification, EmailNotificationBase, EmailNotificationCreate
 from .costume import (
     Costume,
     CostumeBase,
@@ -49,6 +50,10 @@ from .settlement_zone import (
 from .user import User, UserBase, UserCreate, UserPublic, UserUpdate
 
 __all__ = (
+    'EmailAction',
+    'EmailNotification',
+    'EmailNotificationBase',
+    'EmailNotificationCreate',
     'Comment',
     'CommentBase',
     'CommentCreate',

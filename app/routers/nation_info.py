@@ -1,8 +1,9 @@
-from typing import Annotated, Optional, Sequence
+from typing import Annotated, Sequence
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
+from app.core.responses import auth_responses, detail_responses
 from app.dependencies.auth import require_scopes
 from app.dependencies.services import NationInfoServiceDep
 from app.models.entities.nation_info import (
@@ -11,6 +12,7 @@ from app.models.entities.nation_info import (
     NationInfoUpdate,
 )
 from app.schemas.filters import CommonListFilters
+from app.utils.errors import NotFoundError
 
 router = APIRouter(
     prefix='/nation-infos',
@@ -20,7 +22,7 @@ router = APIRouter(
 CommonListFiltersDep = Annotated[CommonListFilters, Depends()]
 
 
-@router.get('/', dependencies=[require_scopes(['nation_info:read'])])
+@router.get('/', dependencies=[require_scopes(['nation_info:read'])], responses=auth_responses)
 async def get_nation_infos(
     service: NationInfoServiceDep,
     filters: CommonListFiltersDep,
@@ -28,7 +30,7 @@ async def get_nation_infos(
     return await service.get_nation_infos(offset=filters.offset, limit=filters.limit)
 
 
-@router.post('/', dependencies=[require_scopes(['nation_info:create'])])
+@router.post('/', dependencies=[require_scopes(['nation_info:create'])], responses=auth_responses)
 async def create_nation_info(
     nation_info_create: NationInfoCreate,
     service: NationInfoServiceDep,
@@ -36,26 +38,35 @@ async def create_nation_info(
     return await service.create_nation_info(nation_info_create)
 
 
-@router.get('/{info_id}', dependencies=[require_scopes(['nation_info:read'])])
+@router.get('/{info_id}', dependencies=[require_scopes(['nation_info:read'])], responses={**auth_responses, **detail_responses})
 async def get_nation_info(
     info_id: UUID,
     service: NationInfoServiceDep,
-) -> Optional[NationInfoPublic]:
-    return await service.get_nation_info(info_id)
+) -> NationInfoPublic:
+    result = await service.get_nation_info(info_id)
+    if result is None:
+        raise NotFoundError()
+    return result
 
 
-@router.put('/{info_id}', dependencies=[require_scopes(['nation_info:update'])])
+@router.put('/{info_id}', dependencies=[require_scopes(['nation_info:update'])], responses={**auth_responses, **detail_responses})
 async def update_nation_info(
     info_id: UUID,
     nation_info_update: NationInfoUpdate,
     service: NationInfoServiceDep,
-) -> Optional[NationInfoPublic]:
-    return await service.update_nation_info(info_id, nation_info_update)
+) -> NationInfoPublic:
+    result = await service.update_nation_info(info_id, nation_info_update)
+    if result is None:
+        raise NotFoundError()
+    return result
 
 
-@router.delete('/{info_id}', dependencies=[require_scopes(['nation_info:delete'])])
+@router.delete('/{info_id}', dependencies=[require_scopes(['nation_info:delete'])], responses={**auth_responses, **detail_responses})
 async def delete_nation_info(
     info_id: UUID,
     service: NationInfoServiceDep,
-) -> Optional[NationInfoPublic]:
-    return await service.delete_nation_info(info_id)
+) -> NationInfoPublic:
+    result = await service.delete_nation_info(info_id)
+    if result is None:
+        raise NotFoundError()
+    return result

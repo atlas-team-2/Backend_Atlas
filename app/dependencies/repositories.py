@@ -10,6 +10,7 @@ from app.repositories.game_question import GameQuestionRepository
 from app.repositories.nation import NationRepository
 from app.repositories.nation_info import NationInfoRepository
 from app.repositories.permission import PermissionRepository
+from app.repositories.email_notification import EmailNotificationRepository
 from app.repositories.refresh_session import RefreshSessionRepository
 from app.repositories.role import RoleRepository
 from app.repositories.settlement_zone import SettlementZoneRepository
@@ -62,4 +63,8 @@ NationInfoRepositoryDep = Annotated[
 RefreshSessionRepositoryDep = Annotated[
     RefreshSessionRepository,
     Depends(RefreshSessionRepository),
+]
+EmailNotificationRepositoryDep = Annotated[
+    EmailNotificationRepository,
+    Depends(EmailNotificationRepository),
 ]
