@@ -1,17 +1,116 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>Подтверждение email</title>
+  <meta charset="UTF-8">
+  <title>Код подтверждения регистрации</title>
 </head>
-<body>
-    <h2>Подтвердите ваш email</h2>
-    <p>Здравствуйте!</p>
-    <p>Для подтверждения вашего аккаунта перейдите по ссылке:</p>
-    <p>
-        <a href="{{ url }}">Подтвердить email</a>
-    </p>
-    <p>Или введите код вручную: <strong>{{ code }}</strong></p>
-    <p>Если вы не регистрировались на нашем сайте, просто проигнорируйте это письмо.</p>
+
+<body style="margin:0; padding:0; background:#f3ead8; font-family:Arial, Helvetica, sans-serif; color:#2f2a28;">
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; background:#f3ead8; padding:32px 12px;">
+  <tr>
+    <td align="center">
+
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width:100%; max-width:620px; background:#dccfb8; border-radius:26px; overflow:hidden; border:1px solid rgba(94,86,77,0.16); box-shadow:0 20px 50px rgba(80,60,30,0.12);">
+        <tr>
+          <td>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+              <tr>
+                <td style="height:7px; background:#2e8b57;"></td>
+              </tr>
+              <tr>
+                <td style="height:4px; background:#ffffff;"></td>
+              </tr>
+              <tr>
+                <td style="height:7px; background:#f13c20;"></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:34px 34px 20px; text-align:center; background:#eadfc9;">
+
+            <div style="font-size:13px; letter-spacing:2.4px; text-transform:uppercase; color:#4056a1; font-weight:800;">
+              Атлас народов Татарстана
+            </div>
+            <h1 style="margin:0 0 10px; font-size:28px; line-height:1.25; color:#2f2a28; font-weight:800;">
+              Подтверждение регистрации
+            </h1>
+
+            <p style="margin:0 auto; max-width:440px; font-size:15px; line-height:1.6; color:#5e564d;">
+              Введите код на сайте, чтобы завершить создание аккаунта.
+            </p>
+
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:30px 34px 8px; background:#dccfb8;">
+
+            <p style="margin:0 0 16px; font-size:16px; line-height:1.6; color:#2f2a28;">
+              Здравствуйте{% if user_name %}, {{ user_name }}{% endif %}!
+            </p>
+
+            <p style="margin:0 0 22px; font-size:16px; line-height:1.6; color:#2f2a28;">
+              Вы начали регистрацию на платформе «Атлас народов Татарстана». Для подтверждения аккаунта используйте одноразовый код:
+            </p>
+            <div style="margin:28px 0; text-align:center;">
+              <div style="display:inline-block; padding:20px 32px; background:#f2e8d8; border:2px solid rgba(46,139,87,0.28); border-radius:20px; box-shadow:0 12px 30px rgba(80,60,30,0.08);">
+
+                <div style="font-size:12px; letter-spacing:1.8px; text-transform:uppercase; color:#5e564d; margin-bottom:10px; font-weight:700;">
+                  Ваш код подтверждения
+                </div>
+
+                <div style="font-size:36px; line-height:1; font-weight:800; letter-spacing:9px; color:#2e8b57;">
+                  {{ code }}
+                </div>
+
+              </div>
+            </div>
+
+            <p style="margin:0 0 12px; font-size:15px; line-height:1.6; color:#5e564d;">
+            </p>
+
+            <p style="margin:0; font-size:15px; line-height:1.6; color:#5e564d;">
+              Если вы не создавали аккаунт на платформе, просто проигнорируйте это письмо.
+            </p>
+
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:24px 34px 32px; background:#dccfb8;">
+
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#efe4d2; border-radius:18px; border:1px solid rgba(94,86,77,0.12);">
+              <tr>
+                <td style="width:6px; background:#d79922; border-radius:18px 0 0 18px;"></td>
+
+                <td style="padding:16px 18px;">
+                  <p style="margin:0; font-size:14px; line-height:1.6; color:#5e564d;">
+                    Никому не сообщайте этот код. Он нужен только для подтверждения регистрации на сайте.
+                  </p>
+                </td>
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:20px 24px; text-align:center; background:#e9ddc7; border-top:1px solid rgba(94,86,77,0.12);">
+            <p style="margin:0 0 4px; font-size:13px; line-height:1.5; color:#7b7267;">
+              Атлас народов Татарстана
+            </p>
+
+            <p style="margin:0; font-size:12px; line-height:1.5; color:#8a8176;">
+              Автоматическое письмо, отвечать на него не нужно.
+            </p>
+
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+
 </body>
 </html>
