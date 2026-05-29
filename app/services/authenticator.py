@@ -5,7 +5,8 @@ from uuid import UUID, uuid4
 import jwt
 
 from app.core.settings import settings
-from app.dependencies.services import RefreshSessionServiceDep, UserServiceDep
+from app.dependencies.services import EmailServiceDep, RefreshSessionServiceDep, UserServiceDep
+from app.models.entities.email import EmailAction
 from app.models.entities.refresh_session import RefreshSession, RefreshSessionCreate
 from app.models.entities.user import User, UserCreate
 from app.schemas.auth import AuthData, AuthTokenData
@@ -17,9 +18,11 @@ class Authenticator:
         self,
         user_service: UserServiceDep,
         refresh_session_service: RefreshSessionServiceDep,
+        email_service: EmailServiceDep,
     ):
         self.__user_service = user_service
         self.__refresh_session_service = refresh_session_service
+        self.__email_service = email_service
 
     def __create_user_token(
         self,
@@ -141,7 +144,32 @@ class Authenticator:
 
         data['password_hash'] = Hasher.get_password_hash(password)
 
-        await self.__user_service.create_user(data)
+        user = await self.__user_service.create_user(data)
+        await self.__email_service.send_verification_email(user.id, user_create.email)
+        return True
+
+    async def verify_account(self, email: str, code: str) -> bool:
+        user = await self.__user_service.get_user_by_email(email)
+        if user is None:
+            return False
+        return await self.__email_service.verify_code(user.id, EmailAction.VERIFY_ACCOUNT, code)
+
+    async def send_password_reset_code(self, email: str) -> bool:
+        user = await self.__user_service.get_user_by_email(email)
+        if user is None:
+            return False
+        await self.__email_service.send_password_reset_email(user.id, email)
+        return True
+
+    async def confirm_password_reset(self, email: str, code: str, new_password: str) -> bool:
+        user = await self.__user_service.get_user_by_email(email)
+        if user is None:
+            return False
+        verified = await self.__email_service.verify_code(user.id, EmailAction.CHANGE_PASSWORD, code)
+        if not verified:
+            return False
+        password_hash = Hasher.get_password_hash(new_password)
+        await self.__user_service.update_password_hash(user.id, password_hash)
         return True
 
     async def authenticate_user(self, access_token: str) -> Optional[User]:

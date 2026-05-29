@@ -24,3 +24,9 @@ class LogoutResponse(BaseModel):
 
 class MeResponse(UserPublic):
     pass
+
+
+class PasswordResetConfirm(BaseModel):
+    email: str
+    code: str
+    new_password: str

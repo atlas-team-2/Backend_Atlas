@@ -34,11 +34,20 @@ class RbacSettings(BaseSettings):
     admin_password: str = 'admin'
 
 
+class EmailSettings(BaseSettings):
+    host: str = 'smtp.gmail.com'
+    port: int = 587
+    username: str = ''
+    password: str = ''
+    from_email: str = ''
+
+
 class Settings(BaseSettings):
     app: AppSettings = AppSettings()
     db: DbSettings = DbSettings()
     auth: AuthSettings = AuthSettings()
     rbac: RbacSettings = RbacSettings()
+    email: EmailSettings = EmailSettings()
 
     model_config = SettingsConfigDict(
         env_file='.env',
