@@ -1,6 +1,7 @@
 name: atlas-compose
 
 x-back-image: &back-image asilya18/backend-atlas:latest
+x-front-image: &front-image nginx:stable-alpine
 
 x-base: &base
   image: *back-image
@@ -57,7 +58,7 @@ services:
     restart: always
 
   web:
-    image: nginx:stable-alpine
+    image: *front-image
     ports:
       - "80:80"
     volumes:
