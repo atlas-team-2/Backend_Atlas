@@ -22,6 +22,7 @@ dependencies = [
     "aiofiles>=25.1.0",
     "slowapi>=0.1.9",
     "gunicorn>=26.0.0",
+    "alembic>=1.13.0",
 ]
 
 [dependency-groups]

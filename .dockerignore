@@ -1,0 +1,14 @@
+.git
+Dockerfile
+.dockerignore
+.venv
+__pycache__
+*.pyc
+*.pyo
+.env
+.env.*
+!.env.example
+.idea
+*.log
+.pre-commit-config.yaml
+README.md
