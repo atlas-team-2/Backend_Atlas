@@ -17,6 +17,7 @@ from app.routers import (
     game,
     game_option,
     game_question,
+    health,
     nation,
     nation_info,
     permission,
@@ -35,6 +36,8 @@ app = FastAPI(
     version=settings.app.version,
     description=settings.app.description,
     servers=settings.app.servers,
+    docs_url=None,
+    openapi_url=None,
 )
 
 app.state.limiter = limiter
@@ -60,6 +63,7 @@ app_router = APIRouter(
     responses=common_responses,
 )
 
+app_router.include_router(health.router)
 app_router.include_router(auth.router)
 app_router.include_router(user.router)
 app_router.include_router(role.router)
