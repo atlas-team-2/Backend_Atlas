@@ -127,5 +127,9 @@ async def confirm_password_reset(
     data: PasswordResetConfirm,
     authenticator: AuthenticatorDep,
 ):
-    success = await authenticator.confirm_password_reset(data.email, data.code, data.new_password)
+    success = await authenticator.confirm_password_reset(
+        data.email,
+        data.code,
+        data.new_password,
+    )
     return RegisterResponse(success=success)

@@ -1,16 +1,15 @@
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRouter
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
 
 from app.core.error_handler import exception_handler
 from app.core.middlewares import request_logging_middleware
 from app.core.responses import common_responses
 from app.core.settings import settings
-from app.db.engine import async_session_maker
-from app.repositories.permission import PermissionRepository
-from app.repositories.role import RoleRepository
-from app.repositories.user import UserRepository
 from app.routers import (
     auth,
     comment,
@@ -25,26 +24,30 @@ from app.routers import (
     settlement_zone,
     user,
 )
-from app.services.bootstrapper import Bootstrapper
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    async with async_session_maker() as session:
-        bootstrapper = Bootstrapper(
-            role_repository=RoleRepository(session),
-            permission_repository=PermissionRepository(session),
-            user_repository=UserRepository(session),
-        )
-        await bootstrapper.bootstrap()
-    yield
-
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[settings.rate_limit.default_limit],
+)
 
 app = FastAPI(
     title=settings.app.name,
     version=settings.app.version,
     description=settings.app.description,
-    lifespan=lifespan,
+    servers=settings.app.servers,
+)
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors.origins,
+    allow_credentials=settings.cors.allow_credentials,
+    allow_methods=settings.cors.allow_methods,
+    allow_headers=settings.cors.allow_headers,
+    max_age=settings.cors.max_age,
 )
 
 app.add_exception_handler(

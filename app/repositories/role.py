@@ -3,12 +3,13 @@ from typing import Optional
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
+from app.dependencies.session import SessionDep
 from app.models.entities.role import Role
 from app.repositories.base import Repository
 
 
 class RoleRepository(Repository[Role]):
-    def __init__(self, session):
+    def __init__(self, session: SessionDep):
         super().__init__(session, Role)
 
     async def get_by_name(self, name: str) -> Optional[Role]:
