@@ -9,6 +9,12 @@ class AppSettings(BaseSettings):
     name: str = 'Atlas Naroda API'
     version: str = '0.1.0'
     description: str = 'Atlas Naroda backend API'
+    servers: list[dict[str, str]] = [
+        {
+            'url': '/',
+            'description': 'Current server',
+        },
+    ]
 
 
 class DbSettings(BaseSettings):
@@ -42,12 +48,35 @@ class EmailSettings(BaseSettings):
     from_email: str = ''
 
 
+class CorsSettings(BaseSettings):
+    origins: list[str] = [
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+        'http://localhost:8080',
+        'http://127.0.0.1:8080',
+    ]
+    allow_credentials: bool = True
+    allow_methods: list[str] = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
+    allow_headers: list[str] = [
+        'Authorization',
+        'Content-Type',
+        'X-Requested-With',
+    ]
+    max_age: int = 3600
+
+
+class RateLimitSettings(BaseSettings):
+    default_limit: str = '10/minute'
+
+
 class Settings(BaseSettings):
     app: AppSettings = AppSettings()
     db: DbSettings = DbSettings()
     auth: AuthSettings = AuthSettings()
     rbac: RbacSettings = RbacSettings()
     email: EmailSettings = EmailSettings()
+    cors: CorsSettings = CorsSettings()
+    rate_limit: RateLimitSettings = RateLimitSettings()
 
     model_config = SettingsConfigDict(
         env_file='.env',
